@@ -11,6 +11,9 @@
 
     const BASE_URL = (window.AVALIACAO_CONFIG && window.AVALIACAO_CONFIG.baseUrl) || '/avaliacao web';
 
+    // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
+    // Sobre o anti-cheat.js este loop é compartilhado via indiceLoop; aqui é independente
+    // (páginas que não são a prova usam apenas este arquivo).
     const AVISOS = [
         { gif: `${BASE_URL}/assets/gifs/silly-tamamo.gif`, texto: 'cole não meu rei, desista e morra' },
         { gif: `${BASE_URL}/assets/gifs/scary-oguri.gif`, texto: 'O QUE EU TE FALEI AGORA?' }

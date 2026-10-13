@@ -28,19 +28,33 @@
 
     // Textos e gifs de cada tipo de violação
     const AVISOS = {
+        // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
+        // Entradas que não têm gif fixo usam esse loop (tecla, copiar, seleção, contexto).
         colar: [
             { gif: gif('silly-tamamo.gif'), texto: 'cole não meu rei, desista e morra' },
             { gif: gif('scary-oguri.gif'), texto: 'O QUE EU TE FALEI AGORA?' }
+        ],
+        tecla: [
+            { gif: gif('silly-tamamo.gif'), texto: 'ESSA TECLA NÃO FUNCIONA AQUI' },
+            { gif: gif('scary-oguri.gif'), texto: 'JÁ FALEI: ESSA TECLA NÃO FUNCIONA AQUI' }
+        ],
+        copiar: [
+            { gif: gif('silly-tamamo.gif'), texto: 'COPIAR NÃO, MEU ANJO' },
+            { gif: gif('scary-oguri.gif'), texto: 'COPIAR? NÃO VAI DAR' }
+        ],
+        selecao: [
+            { gif: gif('silly-tamamo.gif'), texto: 'SELEÇÃO DE TEXTO BLOQUEADA' },
+            { gif: gif('scary-oguri.gif'), texto: 'SELEÇÃO? TÁ BRINCANDO?' }
+        ],
+        contexto: [
+            { gif: gif('silly-tamamo.gif'), texto: 'BOTÃO DIREITO BLOQUEADO' },
+            { gif: gif('scary-oguri.gif'), texto: 'MEU PONTO FECHANDO?' }
         ],
         aba: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
         janela: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
         telaCheia: { gif: gif('angry-oguri.gif'), texto: 'TELA CHEIA É OBRIGATÓRIA!', bloqueia: true },
         devtools: { gif: gif('angry-oguri.gif'), texto: 'FECHE AS FERRAMENTAS DE DESENVOLVEDOR!', bloqueia: true },
-        tecla: { gif: gif('rice-shower-punching.gif'), texto: 'ESSA TECLA NÃO FUNCIONA AQUI' },
         windows: { gif: gif('angry-oguri.gif'), texto: 'A TECLA WINDOWS ESTÁ BLOQUEADA!' },
-        contexto: { gif: gif('rice-shower-punching.gif'), texto: 'BOTÃO DIREITO BLOQUEADO' },
-        copiar: { gif: gif('rice-shower-punching.gif'), texto: 'COPIAR NÃO, MEU ANJO' },
-        selecao: { gif: gif('rice-shower-punching.gif'), texto: 'SELEÇÃO DE TEXTO BLOQUEADA' },
         fraude: { gif: gif('angry-oguri.gif'), texto: 'PROVA FINALIZADA POR FRAUDE!', bloqueia: true }
     };
 
@@ -62,6 +76,7 @@
 
     let faltas = 0;
     let indiceColar = 0;
+    let indiceLoop = 0; // índice compartilhado do loop de dois gifs (silly-tamamo / scary-oguri)
     let finalizando = false;
     let foraDaProva = false;
     let supressaoTelaCheiaAte = 0;
@@ -550,10 +565,18 @@
 
             // Um único "Win+X" gera dois keydown (a tecla Windows e o X): os dois
             // vão para o relatório do professor, mas contam UMA falta só.
+                const chave = doSistema ? 'windows' : 'tecla';
+            const avisoBase = AVISOS[chave];
+            const aviso = Array.isArray(avisoBase)
+                ? avisoBase[indiceLoop % avisoBase.length]
+                : avisoBase;
+
+            if (!doSistema) indiceLoop += 1;
+
             violacao(doSistema ? 'tecla:sistema' : 'tecla:' + (tecla.key || tecla.code), {
                 tipoEvento: 'tecla_bloqueada',
                 descricao: `Tecla bloqueada: ${tecla.desc}`,
-                aviso: doSistema ? AVISOS.windows : AVISOS.tecla,
+                aviso: { gif: aviso.gif, texto: aviso.texto },
                 grave: doSistema,
                 cooldownMs: doSistema ? 2500 : undefined
             });
@@ -583,11 +606,7 @@
 
     document.addEventListener('contextmenu', (evento) => {
         evento.preventDefault();
-        violacao('contexto', {
-            tipoEvento: 'botao_direito',
-            descricao: 'Tentativa de abrir o menu de contexto (botão direito)',
-            aviso: AVISOS.contexto
-        });
+        avisoLoop('contexto', 'Tentativa de abrir o menu de contexto (botão direito)');
         return false;
     });
 
@@ -633,12 +652,8 @@
         arrastandoSelecao = false;
 
         if (foiArrasto) {
-            violacao('selecao', {
-                tipoEvento: 'copiar_colar',
-                descricao: 'Tentativa de selecionar texto da questão',
-                aviso: AVISOS.selecao,
-                cooldownMs: 3000
-            });
+            avisoLoop('selecao', 'Tentativa de selecionar texto da questão');
+            cooldowns.selecao = Date.now();
         }
     });
 
@@ -651,30 +666,18 @@
 
     document.addEventListener('copy', (evento) => {
         evento.preventDefault();
-        violacao('copy', {
-            tipoEvento: 'copiar_colar',
-            descricao: 'Tentativa de copiar conteúdo',
-            aviso: AVISOS.copiar
-        });
+        avisoLoop('copiar', 'Tentativa de copiar conteúdo');
     });
 
     document.addEventListener('cut', (evento) => {
         evento.preventDefault();
-        violacao('cut', {
-            tipoEvento: 'copiar_colar',
-            descricao: 'Tentativa de recortar conteúdo',
-            aviso: AVISOS.copiar
-        });
+        avisoLoop('copiar', 'Tentativa de recortar conteúdo');
     });
 
     document.addEventListener('dragstart', (evento) => {
         evento.preventDefault();
-        violacao('drag', {
-            tipoEvento: 'copiar_colar',
-            descricao: 'Tentativa de arrastar conteúdo da página',
-            aviso: AVISOS.copiar,
-            cooldownMs: 3000
-        });
+        avisoLoop('copiar', 'Tentativa de arrastar conteúdo da página');
+        cooldowns.drag = Date.now();
         return false;
     });
 
@@ -788,15 +791,29 @@
      * Mostra o aviso de colar bloqueado, alternando entre os dois gifs
      * @param {string} descricao
      */
-    function avisoColagem(descricao) {
+    /**
+     * Avisa de uma violação que deve usar o loop de dois gifs (silly-tamamo / scary-oguri)
+     * com texto fixo, igual à colagem.
+     * @param {string} tipoChave chave do AVISOS (ex: 'copiar', 'selecao')
+     * @param {string} descricao descrição registrada no banco
+     */
+    function avisoLoop(tipoChave, descricao) {
         registrarEvento('copiar_colar', descricao);
 
-        // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
-        // O aluno vê só o gif e a frase; o detalhe técnico fica no log do professor.
-        const aviso = AVISOS.colar[indiceColar % AVISOS.colar.length];
-        indiceColar += 1;
+        const avisos = Array.isArray(AVISOS[tipoChave]) ? AVISOS[tipoChave] : [AVISOS[tipoChave]];
+        const aviso = avisos[indiceLoop % avisos.length];
+        indiceLoop += 1;
 
         exibirOverlay(aviso, '');
+    }
+
+    /**
+     * Avisa de colagem bloqueada usando o loop de dois gifs.
+     * Chamada pelo paste-guard.js quando o anti-cheat.js está presente.
+     * @param {string} descricao descrição registrada no banco
+     */
+    function avisoColagem(descricao) {
+        avisoLoop('colar', descricao);
     }
 
     /* ============= INICIALIZAÇÃO ============= */
