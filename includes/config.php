@@ -7,12 +7,45 @@
 // evitando que o tempo restante da avaliação seja calculado errado.
 date_default_timezone_set('America/Sao_Paulo');
 
+/**
+ * Lê uma configuração das variáveis de ambiente, caindo no valor padrão
+ * quando ela não existe. É assim que o site roda tanto no XAMPP local
+ * (que não define nada e usa o padrão) quanto numa hospedagem como o
+ * Render, onde o banco fica em outro servidor e as credenciais são
+ * configuradas no painel — sem precisar editar este arquivo.
+ *
+ * @param string $nome   Nome da variável de ambiente (ex: DB_HOST)
+ * @param string $padrao Valor usado quando a variável não está definida
+ * @return string
+ */
+function envOuPadrao(string $nome, string $padrao): string
+{
+    $valor = getenv($nome);
+
+    if ($valor === false || $valor === '') {
+        $valor = $_ENV[$nome] ?? $_SERVER[$nome] ?? '';
+    }
+
+    return $valor === '' ? $padrao : (string)$valor;
+}
+
 // Configurações do banco de dados
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'avaliacao_web');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// No XAMPP ficam exatamente como antes; numa hospedagem, defina as variáveis
+// de ambiente DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASS no painel.
+define('DB_HOST', envOuPadrao('DB_HOST', 'localhost'));
+define('DB_PORT', envOuPadrao('DB_PORT', '3306'));
+define('DB_NAME', envOuPadrao('DB_NAME', 'avaliacao_web'));
+define('DB_USER', envOuPadrao('DB_USER', 'root'));
+define('DB_PASS', envOuPadrao('DB_PASS', ''));
 define('DB_CHARSET', 'utf8mb4');
+
+// Bancos gerenciados (Aiven, por exemplo) exigem conexão criptografada.
+// Quando o certificado da autoridade existe, a conexão passa a ser TLS
+// com verificação; quando não existe, conecta normal (XAMPP local).
+define('DB_SSL_CA', envOuPadrao('DB_SSL_CA', __DIR__ . '/ca.pem'));
+// Ligue (DB_SSL_OBRIGATORIO=1) quando a hospedagem do banco recusar
+// conexão sem criptografia e você não tiver o certificado da autoridade.
+define('DB_SSL_OBRIGATORIO', envOuPadrao('DB_SSL_OBRIGATORIO', '0') === '1');
 
 // Configurações da aplicação
 define('APP_NAME', 'Sistema de Avaliação Acadêmica');
@@ -58,13 +91,26 @@ function getDbConnection(): PDO
 
     if ($pdo === null) {
         try {
-            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . DB_CHARSET
             ];
+
+            if (is_file(DB_SSL_CA)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = DB_SSL_CA;
+                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+            } elseif (DB_SSL_OBRIGATORIO) {
+                // Conecta criptografado sem validar o certificado do servidor:
+                // o tráfego continua protegido, só não há garantia de identidade.
+                $bundle = '/etc/ssl/certs/ca-certificates.crt';
+                if (is_file($bundle)) {
+                    $options[PDO::MYSQL_ATTR_SSL_CA] = $bundle;
+                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+                }
+            }
 
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
