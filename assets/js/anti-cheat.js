@@ -28,12 +28,17 @@
 
     // Textos e gifs de cada tipo de violação
     const AVISOS = {
-        // Colar (Ctrl+V / Shift+Insert) e copiar/recortar mostram o gif
-        // rice-shower-punching ("punching rice shower") com texto fixo.
-        colar: { gif: gif('rice-shower-punching.gif'), texto: 'COLAR NÃO, MEU ANJO' },
-        copiar: { gif: gif('rice-shower-punching.gif'), texto: 'COPIAR NÃO, MEU ANJO' },
         // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
-        // Seleção de texto, teclas bloqueadas e botão direito usam esse loop.
+        // Colar (Ctrl+V), copiar/recortar (Ctrl+C / Ctrl+X), seleção de texto,
+        // teclas bloqueadas e botão direito usam esse mesmo loop.
+        colar: [
+            { gif: gif('silly-tamamo.gif'), texto: 'COLAR NÃO, MEU ANJO' },
+            { gif: gif('scary-oguri.gif'), texto: 'O QUE EU TE FALEI AGORA?' }
+        ],
+        copiar: [
+            { gif: gif('silly-tamamo.gif'), texto: 'COPIAR NÃO, MEU ANJO' },
+            { gif: gif('scary-oguri.gif'), texto: 'COPIAR? NÃO VAI DAR' }
+        ],
         tecla: [
             { gif: gif('silly-tamamo.gif'), texto: 'ESSA TECLA NÃO FUNCIONA AQUI' },
             { gif: gif('scary-oguri.gif'), texto: 'JÁ FALEI: ESSA TECLA NÃO FUNCIONA AQUI' }
@@ -784,10 +789,10 @@
     /* ============= API PÚBLICA (usada pelo paste-guard.js) ============= */
 
     /**
-     * Avisa de uma violação de cópia/colar. Se o tipo tiver mais de um gif
-     * (o loop silly-tamamo / scary-oguri) ele alterna entre eles; se tiver gif
-     * fixo (colar, copiar = rice-shower-punching) mostra só o gif daquele tipo
-     * sem mexer na posição do loop.
+     * Avisa de uma violação de cópia/colar usando o loop de dois gifs
+     * (silly-tamamo / scary-oguri). O índice é compartilhado entre colar,
+     * copiar, seleção, teclas e botão direito, então os dois gifs se alternam
+     * conforme as tentativas de trapaça vão acontecendo.
      * @param {string} tipoChave chave do AVISOS (ex: 'colar', 'copiar', 'selecao')
      * @param {string} descricao descrição registrada no banco
      */
@@ -795,15 +800,14 @@
         registrarEvento('copiar_colar', descricao);
 
         const avisos = Array.isArray(AVISOS[tipoChave]) ? AVISOS[tipoChave] : [AVISOS[tipoChave]];
-        const usaLoop = avisos.length > 1;
-        const aviso = usaLoop ? avisos[indiceLoop % avisos.length] : avisos[0];
-        if (usaLoop) indiceLoop += 1;
+        const aviso = avisos[indiceLoop % avisos.length];
+        indiceLoop += 1;
 
         exibirOverlay(aviso, '');
     }
 
     /**
-     * Avisa de colagem bloqueada (gif rice-shower-punching).
+     * Avisa de colagem bloqueada usando o loop de dois gifs.
      * Chamada pelo paste-guard.js quando o anti-cheat.js está presente.
      * @param {string} descricao descrição registrada no banco
      */
