@@ -26,31 +26,22 @@
 
     const gif = (nome) => `${baseUrl}/assets/gifs/${nome}`;
 
+    // O loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
+    // É sempre este mesmo par (gif + frase) para todas as violações de cópia/
+    // colagem, seleção, teclas e botão direito. Nas teclas bloqueadas o loop
+    // mostra a frase e o texto de baixo diz qual tecla foi apertada.
+    const LOOP_AVISOS = [
+        { gif: gif('silly-tamamo.gif'), texto: 'cole não meu rei, desista e morra' },
+        { gif: gif('scary-oguri.gif'), texto: 'O QUE EU TE FALEI AGORA?' }
+    ];
+
     // Textos e gifs de cada tipo de violação
     const AVISOS = {
-        // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
-        // Colar (Ctrl+V), copiar/recortar (Ctrl+C / Ctrl+X), seleção de texto,
-        // teclas bloqueadas e botão direito usam esse mesmo loop.
-        colar: [
-            { gif: gif('silly-tamamo.gif'), texto: 'COLAR NÃO, MEU ANJO' },
-            { gif: gif('scary-oguri.gif'), texto: 'O QUE EU TE FALEI AGORA?' }
-        ],
-        copiar: [
-            { gif: gif('silly-tamamo.gif'), texto: 'COPIAR NÃO, MEU ANJO' },
-            { gif: gif('scary-oguri.gif'), texto: 'COPIAR? NÃO VAI DAR' }
-        ],
-        tecla: [
-            { gif: gif('silly-tamamo.gif'), texto: 'ESSA TECLA NÃO FUNCIONA AQUI' },
-            { gif: gif('scary-oguri.gif'), texto: 'JÁ FALEI: ESSA TECLA NÃO FUNCIONA AQUI' }
-        ],
-        selecao: [
-            { gif: gif('silly-tamamo.gif'), texto: 'SELEÇÃO DE TEXTO BLOQUEADA' },
-            { gif: gif('scary-oguri.gif'), texto: 'SELEÇÃO? TÁ BRINCANDO?' }
-        ],
-        contexto: [
-            { gif: gif('silly-tamamo.gif'), texto: 'BOTÃO DIREITO BLOQUEADO' },
-            { gif: gif('scary-oguri.gif'), texto: 'MEU PONTO FECHANDO?' }
-        ],
+        colar: LOOP_AVISOS,
+        copiar: LOOP_AVISOS,
+        tecla: LOOP_AVISOS,
+        selecao: LOOP_AVISOS,
+        contexto: LOOP_AVISOS,
         aba: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
         janela: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
         telaCheia: { gif: gif('angry-oguri.gif'), texto: 'TELA CHEIA É OBRIGATÓRIA!', bloqueia: true },
