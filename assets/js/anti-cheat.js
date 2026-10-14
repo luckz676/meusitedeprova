@@ -753,6 +753,11 @@
     /* ============= SAÍDA DA PÁGINA ============= */
 
     window.addEventListener('beforeunload', (evento) => {
+        // Finalização em andamento (botão do modal, tempo esgotado ou fraude):
+        // não é o aluno saindo sem querer, então o navegador não pergunta nada
+        // e a navegação segue direto para a tela de conclusão.
+        if (finalizando) return;
+
         const form = document.getElementById('form-avaliacao');
         if (form && !form.dataset.finalizado) {
             registrarEvento('tentativa_saida', 'Tentativa de sair ou recarregar a página da prova');
@@ -763,9 +768,20 @@
     });
 
     document.addEventListener('submit', (evento) => {
-        if (evento.target.id === 'form-avaliacao' || evento.target.closest('#modal-finalizar form')) {
-            evento.target.dataset.finalizado = 'true';
-        }
+        const form = evento.target;
+        const ehFinalizacao = !!(form.querySelector && form.querySelector('input[name="acao"][value="finalizar"]'));
+        const ehProva = form.id === 'form-avaliacao';
+
+        if (!ehProva && !ehFinalizacao) return;
+
+        // Marca o form principal (é ele que o beforeunload consulta, não o form
+        // que disparou o submit) e congela o anti-cola. Sem isso, a saída da
+        // tela cheia e a perda de foco durante a navegação viravam falta, e o
+        // navegador travava com o aviso "sair da guia?" no meio da finalização.
+        finalizando = true;
+        const formProva = document.getElementById('form-avaliacao');
+        if (formProva) formProva.dataset.finalizado = 'true';
+        form.dataset.finalizado = 'true';
     });
 
     /* ============= CAMPOS ============= */
