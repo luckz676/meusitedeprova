@@ -565,7 +565,7 @@
 
             // Um único "Win+X" gera dois keydown (a tecla Windows e o X): os dois
             // vão para o relatório do professor, mas contam UMA falta só.
-                const chave = doSistema ? 'windows' : 'tecla';
+            const chave = doSistema ? 'windows' : 'tecla';
             const avisoBase = AVISOS[chave];
             const aviso = Array.isArray(avisoBase)
                 ? avisoBase[indiceLoop % avisoBase.length]
