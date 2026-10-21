@@ -67,6 +67,10 @@
     });
 
     let faltas = 0;
+    // A prova só começa a valer depois que o aluno libera a câmera e fecha o
+    // portão: o próprio pedido de permissão do Chrome tira o foco da janela e
+    // era contado como "saiu da prova" (falta grave de graça).
+    let provaIniciada = false;
     let indiceColar = 0;
     let indiceLoop = 0; // índice compartilhado do loop de dois gifs (silly-tamamo / scary-oguri)
     let finalizando = false;
@@ -80,6 +84,7 @@
     let detalheEl = null;
     let botaoEl = null;
     let esconderTimer = null;
+    let overlayBloqueia = false;
 
     // Barra de status: deixa o anti-cola visivel durante toda a prova
     let statusEl = null;
@@ -172,6 +177,12 @@
         if (gifEl) gifEl.removeAttribute('src');
     }
 
+    /** Fecha só os avisos leves (a webcam usa quando o aluno volta a olhar). */
+    function esconderAviso() {
+        if (overlayBloqueia) return;
+        esconderOverlay();
+    }
+
     /**
      * @param {object} aviso  {gif, texto, bloqueia}
      * @param {string} detalhe
@@ -187,6 +198,7 @@
 
         tituloEl.textContent = aviso.texto;
         gifEl.src = aviso.gif;
+        overlayBloqueia = !!aviso.bloqueia;
         detalheEl.textContent = detalhe || '';
         botaoEl.hidden = !aviso.bloqueia;
 
@@ -199,7 +211,7 @@
 
         clearTimeout(esconderTimer);
         if (!aviso.bloqueia) {
-            esconderTimer = setTimeout(esconderOverlay, DURACAO_AVISO_MS);
+            esconderTimer = setTimeout(esconderOverlay, aviso.duracaoMs || DURACAO_AVISO_MS);
         }
     }
 
@@ -301,12 +313,26 @@
     /* ============= VIOLAÇÕES ============= */
 
     /**
+     * A contagem de faltas só vale com a prova na tela: nada de contar o
+     * prompt de permissão da câmera nem o clique nos portões de entrada.
+     * @returns {boolean}
+     */
+    function provaValendo() {
+        if (!provaIniciada || finalizando) return false;
+        if (window.WebcamGuard && typeof window.WebcamGuard.gateAberto === 'function'
+            && window.WebcamGuard.gateAberto()) return false;
+        return true;
+    }
+
+    /**
      * Registra a violação, mostra o gif e (se for grave) conta falta.
      * @param {string} chaveCooldown
      * @param {{tipoEvento:string, descricao:string, aviso:object, grave?:boolean, cooldownMs?:number}} opcoes
      */
     function violacao(chaveCooldown, opcoes) {
         registrarEvento(opcoes.tipoEvento, opcoes.descricao);
+
+        if (!provaValendo()) return;
 
         const agora = Date.now();
         const espera = opcoes.cooldownMs || COOLDOWN_PADRAO_MS;
@@ -338,6 +364,8 @@
      * @param {object} aviso
      */
     function contarSaida(tipoEvento, descricao, aviso) {
+        if (!provaValendo()) return;
+
         registrarEvento(tipoEvento, descricao);
 
         if (foraDaProva || finalizando) return;
@@ -429,7 +457,7 @@
 
         atualizarBarraStatus();
 
-        if (finalizando) return;
+        if (!provaValendo()) return;
         if (Date.now() < supressaoTelaCheiaAte) return; // já contabilizado como troca de aba/janela
 
         registrarEvento('tela_cheia_saida', 'O aluno saiu do modo tela cheia');
@@ -842,8 +870,12 @@
     // A webcam é pedida antes: o portão da câmera (webcam.js) vem primeiro e
     // este só aparece depois que a câmera está ligada.
     if (window.WebcamGuard && window.WebcamGuard.liberacao) {
-        window.WebcamGuard.liberacao.then(() => { mostrarPortao(); });
+        window.WebcamGuard.liberacao.then(() => {
+            provaIniciada = true;
+            mostrarPortao();
+        });
     } else {
+        provaIniciada = true;
         mostrarPortao();
     }
 
@@ -851,6 +883,7 @@
         registrarEvento,
         violacao,
         exibirOverlay,
+        esconderAviso,
         avisoColagem,
         pedirTelaCheia,
         faltas: () => faltas,

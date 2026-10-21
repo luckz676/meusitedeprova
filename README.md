@@ -38,9 +38,13 @@ da página durante toda a prova: gif *stay gold* à esquerda, vídeo no meio e g
 direita. Se a câmera for desligada no meio da prova, o portão volta e conta **falta grave**
 (`webcam_desligada`). A câmera é desligada sozinha quando a prova é finalizada.
 
-**Detecção de olhar para o lado:** a cada 0,4s o quadro da câmera é analisado. O sistema calibra a posição
-normal do rosto nos primeiros 5s e, se o rosto ficar desviado do centro por mais de 1,4s, conta **falta
-grave** (`olhar_desviado`) e mostra o gif *OLHE PARA A PROVA!*. Ficar 8s sem rosto no enquadramento registra
+Nada conta falta antes de a prova começar: enquanto o portão da câmera (ou o da tela cheia) está na tela, o
+foco que o **prompt de permissão do Chrome** rouba não é tratado como saída da prova.
+
+**Detecção de olhar para o lado:** a cada 0,25s o quadro da câmera é analisado. O sistema calibra a posição
+normal do rosto nos primeiros 3s e, se o rosto ficar desviado do centro por mais de 1s, conta **falta
+grave** (`olhar_desviado`) e mostra o gif *OLHE PARA A PROVA!* (que some em 2,5s). Quando o rosto volta para
+o centro o aviso e a borda vermelha saem na hora. Ficar 8s sem rosto no enquadramento registra
 `rosto_fora` e avisa, sem contar falta. A análise usa a API `FaceDetector` quando o navegador tem; sem ela,
 usa o centro de massa da região de pele do quadro — pega desvios claros de cabeça (virar para uma segunda
 tela ou celular ao lado) e pode errar em ambiente escuro. Nenhum site consegue medir para onde os olhos

@@ -36,11 +36,13 @@
     const LARGURA = 160;
     const ALTURA = 120;
 
-    const INTERVALO_MS = 400;          // uma análise a cada 0,4s
-    const LIMIAR_DESVIO = 0.11;        // 11% da largura do quadro
-    const TEMPO_DESVIO_MS = 1400;      // precisa ficar desviado esse tempo para contar
+    const INTERVALO_MS = 250;          // uma análise a cada 0,25s
+    const LIMIAR_DESVIO = 0.10;        // 10% da largura do quadro conta como desvio
+    const LIMIAR_VOLTA = 0.07;         // abaixo disso o rosto voltou e a base se ajusta
+    const TEMPO_DESVIO_MS = 1000;      // precisa ficar desviado 1s para contar
     const MIN_PROPORCAO = 0.012;       // rosto ocupa pelo menos 1,2% do quadro
-    const CALIBRAGEM_MS = 5000;        // primeiros segundos só calibram
+    const CALIBRAGEM_MS = 3000;        // primeiros segundos só calibram
+    const DURACAO_AVISO_OLHAR_MS = 2500; // o aviso some rápido depois que o aluno volta
 
     let stream = null;
     let video = null;
@@ -218,6 +220,8 @@
 
         video = barra.querySelector('#webcam-video');
         statusEl = barra.querySelector('#webcam-status');
+        statusAtual = '';
+        alertaAtual = false;
 
         // O cabeçalho da prova é fixo no topo: com a barra da câmera ele desce
         // junto (o CSS usa esta classe em body.tem-webcam).
@@ -226,10 +230,19 @@
         return barra;
     }
 
+    let statusAtual = '';
+    let alertaAtual = false;
+
     function status(texto, alerta) {
         if (!statusEl) return;
-        statusEl.textContent = texto;
-        statusEl.classList.toggle('webcam-barra__status--alerta', !!alerta);
+        if (statusAtual !== texto) {
+            statusEl.textContent = texto;
+            statusAtual = texto;
+        }
+        if (alertaAtual !== !!alerta) {
+            statusEl.classList.toggle('webcam-barra__status--alerta', !!alerta);
+            alertaAtual = !!alerta;
+        }
     }
 
     function iniciarCamera(capturado) {
@@ -346,8 +359,8 @@
         let encontrados = 0;
         let total = 0;
 
-        for (let y = 0; y < altura; y += 2) {
-            for (let x = 0; x < largura; x += 2) {
+        for (let y = 0; y < altura; y++) {
+            for (let x = 0; x < largura; x++) {
                 const i = (y * largura + x) * 4;
                 const r = dados[i];
                 const g = dados[i + 1];
@@ -444,29 +457,26 @@
                 status('Câmera ligada');
             }
             return;
-        }
-
-        // Quadro suspeito (mão na frente, luz mudou): não julga o olhar.
-        if (amostra.proporcao > baseProporcao * 2.2 || amostra.proporcao < baseProporcao * 0.55) {
+        }        // Quadro suspeito (mão na frente, luz mudou): não julga o olhar.
+        if (amostra.proporcao > baseProporcao * 2.5 || amostra.proporcao < baseProporcao * 0.5) {
             return;
         }
 
         const desvio = (amostra.centroX - baseCentro) / LARGURA;
         const distancia = Math.abs(desvio);
 
-        if (distancia <= LIMIAR_DESVIO * 0.7) {
-            desvioDesde = 0;
-            ladoDesvio = '';
-            avisouDesvio = false;
+        // Voltou para o centro: limpa o aviso na hora, sem esperar confirmação
+        // (era isso que deixava o "olhando para o lado" na tela depois da volta).
+        if (distancia < LIMIAR_DESVIO) {
+            if (desvioDesde) limparDesvio();
 
             // Reaproxima a base devagar: o aluno pode mudar de posição na cadeira.
-            baseCentro += (amostra.centroX - baseCentro) * 0.05;
-            baseProporcao += (amostra.proporcao - baseProporcao) * 0.05;
-            status('Rosto no centro');
+            if (distancia <= LIMIAR_VOLTA) {
+                baseCentro += (amostra.centroX - baseCentro) * 0.06;
+                baseProporcao += (amostra.proporcao - baseProporcao) * 0.06;
+            }
             return;
         }
-
-        if (distancia <= LIMIAR_DESVIO) return; // faixa neutra, não conta nada
 
         const lado = desvio > 0 ? 'direita' : 'esquerda';
 
@@ -500,6 +510,19 @@
         }
     }
 
+    /** Volta ao normal na hora em que o rosto volta para o centro. */
+    function limparDesvio() {
+        desvioDesde = 0;
+        ladoDesvio = '';
+        avisouDesvio = false;
+        status('Rosto no centro');
+        if (barra) barra.classList.remove('webcam-barra--alerta');
+
+        // O aluno já voltou: tira o aviso da tela em vez de esperar ele sumir.
+        const anti = window.AntiCheat;
+        if (anti && typeof anti.esconderAviso === 'function') anti.esconderAviso();
+    }
+
     function registrarFaltaDeOlhar(lado) {
         const segundos = (TEMPO_DESVIO_MS / 1000).toFixed(1).replace('.', ',');
         const descricao = `O aluno desviou o olhar para a ${lado} por mais de ${segundos} segundos`;
@@ -511,7 +534,12 @@
             anti.violacao('webcam:olhar', {
                 tipoEvento: 'olhar_desviado',
                 descricao: descricao,
-                aviso: { gif: GIFS.olhar, texto: 'OLHE PARA A PROVA!' },
+                aviso: {
+                    gif: GIFS.olhar,
+                    texto: 'OLHE PARA A PROVA!',
+                    // some rápido: o aluno já voltou, não precisa cobrir a questão
+                    duracaoMs: DURACAO_AVISO_OLHAR_MS
+                },
                 grave: true,
                 cooldownMs: 8000
             });
@@ -520,9 +548,10 @@
             avisarOlhar(GIFS.olhar, 'OLHE PARA A PROVA!', false);
         }
 
+        // A borda vermelha acompanha o aviso na tela e sai junto com ele.
         if (barra) {
             barra.classList.add('webcam-barra--alerta');
-            setTimeout(() => barra && barra.classList.remove('webcam-barra--alerta'), 2600);
+            setTimeout(() => barra && barra.classList.remove('webcam-barra--alerta'), DURACAO_AVISO_OLHAR_MS);
         }
     }
 
@@ -551,6 +580,9 @@
     window.WebcamGuard = {
         liberacao,
         ligada: () => !!stream,
+        /** O portão da câmera está na tela? O anti-cola usa isso para não
+         *  contar falta enquanto o aluno ainda está liberando a câmera. */
+        gateAberto: () => !!(portao && portao.classList.contains('is-visible')),
         /**
          * Diagnóstico usado pelos testes automatizados (não desliga proteção
          * nenhuma, só permite conferir a análise e o contador de desvios).
