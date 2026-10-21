@@ -260,7 +260,103 @@
 .aviso-icon { font-size: 1.25rem; }
 .aviso-texto { font-weight: 600; }
 
+/* =========================================================================
+   WEBCAM OBRIGATÓRIA (barra fixa no topo da prova)
+   ========================================================================= */
+:root { --webcam-barra-altura: 132px; }
+
+.webcam-barra {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    height: var(--webcam-barra-altura);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 0.45rem 1rem;
+    background: rgba(2, 6, 23, 0.95);
+    border-bottom: 2px solid var(--primary);
+    box-shadow: var(--shadow-lg);
+    transition: border-color 0.2s ease;
+}
+.webcam-barra--alerta { border-bottom-color: var(--danger); }
+
+.webcam-barra__gif {
+    height: calc(var(--webcam-barra-altura) - 1.5rem);
+    width: auto;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.8);
+}
+
+.webcam-barra__moldura {
+    position: relative;
+    height: calc(var(--webcam-barra-altura) - 1.5rem);
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    border: 2px solid rgba(148, 163, 184, 0.55);
+    box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.8);
+}
+.webcam-barra__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* espelho: o aluno se vê como num espelho, não como a câmera vê */
+    transform: scaleX(-1);
+}
+.webcam-barra__status {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.12rem 0.3rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: center;
+    color: #fff;
+    background: rgba(2, 6, 23, 0.72);
+}
+.webcam-barra__status--alerta { background: var(--danger); }
+
+/* O cabeçalho da prova é fixo em top: 0 — com a barra da câmera ele desce. */
+body.tem-webcam .avaliacao-header { top: var(--webcam-barra-altura); }
+body.tem-webcam .avaliacao-main {
+    padding-top: calc(var(--header-height) + var(--webcam-barra-altura) + 70px);
+}
+
+/* Portão da câmera: mesmo visual do portão da tela cheia */
+.webcam-portao .gif-overlay__texto { font-size: 1.5rem; }
+.webcam-portao__erro {
+    margin: 0;
+    max-width: min(90vw, 560px);
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--border-radius);
+    background: rgba(220, 38, 38, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.5);
+    color: #fecaca;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.45;
+}
+.webcam-portao [hidden] { display: none !important; }
+
 /* ============= RESPONSIVO ============= */
+@media (max-width: 1100px) {
+    :root { --webcam-barra-altura: 112px; }
+    .webcam-barra__gif { border-radius: 9px; }
+}
+@media (max-width: 720px) {
+    :root { --webcam-barra-altura: 92px; }
+    .webcam-barra { gap: 0.5rem; padding: 0.35rem 0.5rem; }
+}
+
 @media (max-width: 1024px) {
     .avaliacao-main .container { grid-template-columns: 1fr; }
     .questoes-nav { position: static; max-height: none; order: -1; }

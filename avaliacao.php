@@ -274,6 +274,9 @@ $flashes = obterFlashes();
     </div>
 
     <script src="/avaliacao web/assets/js/avaliacao.js?v=<?= versaoEstatico('assets/js/avaliacao.js') ?>"></script>
+    <!-- A webcam vem antes: o anti-cola só mostra o portão da tela cheia
+         depois que a câmera estiver liberada. -->
+    <script src="/avaliacao web/assets/js/webcam.js?v=<?= versaoEstatico('assets/js/webcam.js') ?>"></script>
     <script src="/avaliacao web/assets/js/anti-cheat.js?v=<?= versaoEstatico('assets/js/anti-cheat.js') ?>"></script>
     <script src="/avaliacao web/assets/js/paste-guard.js?v=<?= versaoEstatico('assets/js/paste-guard.js') ?>"></script>
 </body>

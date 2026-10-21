@@ -41,7 +41,7 @@ if ($avaliacaoId <= 0) {
     exit;
 }
 
-$tiposValidos = ['mudanca_aba', 'mudanca_janela', 'tecla_bloqueada', 'click_fora', 'devtools_aberto', 'tela_cheia_saida', 'copiar_colar', 'botao_direito', 'nova_aba', 'volta_foco', 'tentativa_saida', 'tela_cheia_negada', 'tempo_esgotado'];
+$tiposValidos = ['mudanca_aba', 'mudanca_janela', 'tecla_bloqueada', 'click_fora', 'devtools_aberto', 'tela_cheia_saida', 'copiar_colar', 'botao_direito', 'nova_aba', 'volta_foco', 'tentativa_saida', 'tela_cheia_negada', 'tempo_esgotado', 'webcam_autorizada', 'webcam_negada', 'webcam_desligada', 'olhar_desviado', 'rosto_fora'];
 if (!in_array($tipoEvento, $tiposValidos)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Tipo de evento inválido']);

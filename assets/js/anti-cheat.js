@@ -177,9 +177,10 @@
      * @param {string} detalhe
      */
     function exibirOverlay(aviso, detalhe) {
-        // Garante que só exista um overlay na tela (o paste-guard também cria um)
+        // Garante que só exista um overlay na tela (o paste-guard também cria um).
+        // O portão da webcam fica de fora: ele é recriado pelo webcam.js.
         document.querySelectorAll('.gif-overlay').forEach((el) => {
-            if (el !== overlay && el !== portaoEl) el.remove();
+            if (el !== overlay && el !== portaoEl && el.id !== 'webcam-portao') el.remove();
         });
 
         criarOverlay();
@@ -405,9 +406,18 @@
 
     // Tenta voltar para a tela cheia em toda interação do aluno
     ['click', 'mousedown', 'keydown', 'touchstart'].forEach((evento) => {
-        document.addEventListener(evento, () => {
-            if (!document.fullscreenElement && !finalizando) pedirTelaCheia();
+        document.addEventListener(evento, (e) => {
+            if (document.fullscreenElement || finalizando) return;
+            // Clicar no portão da câmera é para liberar a webcam: pedir tela
+            // cheia no mesmo gesto fazia o navegador abortar o pedido de câmera.
+            if (e.target && e.target.closest && e.target.closest('#webcam-portao')) return;
+            pedirTelaCheia();
         }, true);
+    });
+
+    // A webcam avisa quando a câmera cai no meio da prova: o portão volta.
+    document.addEventListener('anti-cheat:pedir-portao', () => {
+        if (!finalizando) mostrarPortao();
     });
 
     document.addEventListener('fullscreenchange', () => {
@@ -829,7 +839,13 @@
 
     // Exige tela cheia desde o começo: sem isso o aluno podia fazer a prova
     // inteira fora da tela cheia e "sair da tela cheia" não gerava falta alguma.
-    mostrarPortao();
+    // A webcam é pedida antes: o portão da câmera (webcam.js) vem primeiro e
+    // este só aparece depois que a câmera está ligada.
+    if (window.WebcamGuard && window.WebcamGuard.liberacao) {
+        window.WebcamGuard.liberacao.then(() => { mostrarPortao(); });
+    } else {
+        mostrarPortao();
+    }
 
     window.AntiCheat = {
         registrarEvento,

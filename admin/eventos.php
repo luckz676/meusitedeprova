@@ -76,7 +76,12 @@ $tiposEvento = [
     'botao_direito' => 'Botão Direito',
     'volta_foco' => 'Volta ao Foco',
     'tentativa_saida' => 'Tentativa de Saída',
-    'tela_cheia_negada' => 'Tela Cheia Negada'
+    'tela_cheia_negada' => 'Tela Cheia Negada',
+    'webcam_autorizada' => 'Webcam Liberada',
+    'webcam_negada' => 'Webcam Negada',
+    'webcam_desligada' => 'Webcam Desligada',
+    'olhar_desviado' => 'Olhar Desviado',
+    'rosto_fora' => 'Rosto Fora da Câmera'
 ];
 
 $totalPaginas = ceil($totalEventos / $porPagina);

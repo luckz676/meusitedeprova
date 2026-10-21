@@ -31,6 +31,21 @@ Em `assets/js/anti-cheat.js`. **Toda violação mostra um gif em tela cheia, esc
 trava (para não inviabilizar o aluno) — a recusa é registrada como `tela_cheia_negada` e a barra de status
 passa a alertar em vermelho.
 
+**Webcam obrigatória:** em `assets/js/webcam.js`. Ao abrir a prova, **antes** da tela cheia, aparece o portão
+*MODO PROVA — CÂMERA OBRIGATÓRIA* (com o gif *cute stay gold* no meio). Sem liberar a câmera a prova não
+começa — a recusa fica registrada como `webcam_negada`. Depois de liberar, a câmera aparece ao vivo no topo
+da página durante toda a prova: gif *stay gold* à esquerda, vídeo no meio e gif *weaving aston machan* à
+direita. Se a câmera for desligada no meio da prova, o portão volta e conta **falta grave**
+(`webcam_desligada`). A câmera é desligada sozinha quando a prova é finalizada.
+
+**Detecção de olhar para o lado:** a cada 0,4s o quadro da câmera é analisado. O sistema calibra a posição
+normal do rosto nos primeiros 5s e, se o rosto ficar desviado do centro por mais de 1,4s, conta **falta
+grave** (`olhar_desviado`) e mostra o gif *OLHE PARA A PROVA!*. Ficar 8s sem rosto no enquadramento registra
+`rosto_fora` e avisa, sem contar falta. A análise usa a API `FaceDetector` quando o navegador tem; sem ela,
+usa o centro de massa da região de pele do quadro — pega desvios claros de cabeça (virar para uma segunda
+tela ou celular ao lado) e pode errar em ambiente escuro. Nenhum site consegue medir para onde os olhos
+apontam sem rastreio facial. A câmera exige **https** ou `localhost`.
+
 **Barra de status do anti-cola:** um cartão fixo no canto da tela mostra `🛡️ Anti-cola ativo`, o contador de
 **faltas graves** (`x de 5`) e o estado da tela cheia. Quando o aluno está fora da tela cheia a barra fica
 vermelha e o botão *Voltar à tela cheia* aparece. Assim o anti-cola fica visível durante toda a prova, em vez
@@ -178,6 +193,7 @@ avaliacao-web/
 │   └── js/
 │       ├── avaliacao.js   # Lógica da prova
 │       ├── anti-cheat.js  # Mecanismos anti-cola
+│       ├── webcam.js      # Webcam obrigatória + detecção de olhar para o lado
 │       ├── paste-guard.js # Bloqueio de colar (com aviso em gif)
 │       └── feedback.js    # Estrelas e reação da avaliação do site
 ├── includes/

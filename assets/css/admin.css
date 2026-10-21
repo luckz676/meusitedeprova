@@ -177,6 +177,10 @@
 .evento-tipo.botao_direito { color: var(--danger); }
 .evento-tipo.tela_cheia_saida { color: var(--warning); }
 .evento-tipo.tentativa_saida { color: var(--danger); }
+.evento-tipo.olhar_desviado { color: var(--danger); }
+.evento-tipo.webcam_desligada { color: var(--danger); }
+.evento-tipo.webcam_negada { color: var(--danger); }
+.evento-tipo.rosto_fora { color: var(--warning); }
 
 /* Responsivo */
 @media (max-width: 1024px) {
