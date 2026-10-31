@@ -7,14 +7,15 @@
  *  - Mostra a câmera ao vivo no topo da página durante toda a prova, com o
  *    gif stay gold à esquerda e o weaving aston machan à direita
  *  - Analisa o quadro da câmera e conta FALTA GRAVE quando o aluno desvia o
- *    olhar para o lado por mais de alguns segundos
+ *    olhar para o lado, para baixo ou para cima por mais de alguns segundos
  *
  * Limitação do navegador (importante):
  *  não existe uma API padrão de rastreio facial no Chrome de desktop. Quando o
  *  navegador tem a FaceDetector (Chrome com flags/Android), ela é usada; sem ela
- *  o desvio é estimado pelo centro de massa da região de pele do quadro. Isso
- *  pega desvios claros de cabeça (virar para uma segunda tela ou celular ao
- *  lado) e pode errar em ambiente escuro ou com mão na frente do rosto.
+ *  o desvio é estimado pela posição da região de pele do quadro (eixo X e Y).
+ *  Isso pega desvios claros de cabeça (virar para uma segunda tela, celular ao
+ *  lado ou no colo, olhar para o teto) e pode errar em ambiente escuro ou com
+ *  mão na frente do rosto. O movimento dos olhos sozinho não é medido.
  */
 
 (function() {
@@ -37,9 +38,19 @@
     const ALTURA = 120;
 
     const INTERVALO_MS = 250;          // uma análise a cada 0,25s
-    const LIMIAR_DESVIO = 0.10;        // 10% da largura do quadro conta como desvio
+    const LIMIAR_DESVIO = 0.10;        // 10% da largura do quadro desvia para o lado
     const LIMIAR_VOLTA = 0.07;         // abaixo disso o rosto voltou e a base se ajusta
+    // No eixo vertical o limite é medido em relação ao TAMANHO DO ROSTO (não ao
+    // quadro): quem está perto da câmera tem um rosto grande e um aceno pequeno
+    // já muda muito o centro; quem está longe tem o contrário. Usar a altura do
+    // próprio rosto faz o mesmo aceno valer o mesmo nos dois casos.
+    const LIMIAR_DESVIO_Y = 0.22;      // 22% da altura do rosto desvia para baixo/cima
+    const LIMIAR_VOLTA_Y = 0.15;       // mesmo papel do LIMIAR_VOLTA no eixo vertical
     const TEMPO_DESVIO_MS = 1000;      // precisa ficar desviado 1s para contar
+    // Olhar para baixo faz parte de digitar (teclado), então o eixo vertical
+    // exige um pouco mais de tempo antes de virar falta — evita acusar quem só
+    // baixou a cabeça por um instante.
+    const TEMPO_DESVIO_VERTICAL_MS = 1300;
     const MIN_PROPORCAO = 0.012;       // rosto ocupa pelo menos 1,2% do quadro
     const CALIBRAGEM_MS = 3000;        // primeiros segundos só calibram
     const DURACAO_AVISO_OLHAR_MS = 2500; // o aviso some rápido depois que o aluno volta
@@ -57,6 +68,8 @@
 
     // Calibragem / desvio de olhar
     let baseCentro = null;
+    let baseCentroY = null;
+    let baseAlturaY = 0;      // altura do rosto calibrada, em pixels do quadro
     let baseProporcao = 0;
     let calibrandoAte = 0;
     let amostrasCalibragem = [];
@@ -104,8 +117,8 @@
         if (portao && document.body.contains(portao)) return portao;
 
         const textoLimite = limiteFaltas > 0
-            ? `Olhar para o lado conta <strong>falta grave</strong> e com ${limiteFaltas} faltas a prova é encerrada.`
-            : 'Olhar para o lado conta <strong>falta grave</strong>.';
+            ? `Olhar para o lado, para baixo ou para cima conta <strong>falta grave</strong> e com ${limiteFaltas} faltas a prova é encerrada.`
+            : 'Olhar para o lado, para baixo ou para cima conta <strong>falta grave</strong>.';
 
         portao = document.createElement('div');
         portao.className = 'gif-overlay webcam-portao';
@@ -269,6 +282,8 @@
         registrarEvento('webcam_autorizada', 'O aluno liberou a câmera para a prova');
 
         baseCentro = null;
+        baseCentroY = null;
+        baseAlturaY = 0;
         baseProporcao = 0;
         amostrasCalibragem = [];
         calibrandoAte = Date.now() + CALIBRAGEM_MS;
@@ -347,40 +362,96 @@
     /* ============= ANÁLISE DO QUADRO ============= */
 
     /**
-     * Procura a região de pele do quadro (regra clássica YCbCr) e devolve o
-     * centro horizontal dela. Usado quando o navegador não tem FaceDetector.
+     * Procura a região de pele do quadro (regra clássica YCbCr) e devolve a
+     * posição e o tamanho dela nos dois eixos. Usado quando o navegador não tem
+     * FaceDetector.
+     *
+     * Em vez da média de todos os pixels (um pixel solto de parede bege puxava
+     * o centro e o rosto "pulava" de posição), cada eixo é resumido pela faixa
+     * que concentra 84% dos pixels de pele, descartando as pontas. É isso que
+     * deixa a leitura estável o bastante para medir desvio vertical.
+     *
      * @param {Uint8ClampedArray} dados pixels RGBA
      * @param {number} largura
      * @param {number} altura
-     * @returns {{centroX: number|null, proporcao: number}}
+     * @returns {{centroX: number|null, centroY: number|null, proporcao: number,
+     *            larguraRelativa: number, alturaRelativa: number}}
      */
     function analisarPixels(dados, largura, altura) {
-        let somaX = 0;
+        const contagemX = new Uint16Array(largura);
+        const contagemY = new Uint16Array(altura);
         let encontrados = 0;
-        let total = 0;
 
         for (let y = 0; y < altura; y++) {
+            const linha = y * largura;
             for (let x = 0; x < largura; x++) {
-                const i = (y * largura + x) * 4;
+                const i = (linha + x) * 4;
                 const r = dados[i];
                 const g = dados[i + 1];
                 const b = dados[i + 2];
-                total++;
 
                 const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
                 const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
                 const yv = 0.299 * r + 0.587 * g + 0.114 * b;
 
                 if (yv > 55 && yv < 245 && cb >= 77 && cb <= 127 && cr >= 133 && cr <= 173) {
-                    somaX += x;
+                    contagemX[x]++;
+                    contagemY[y]++;
                     encontrados++;
                 }
             }
         }
 
+        if (encontrados === 0) {
+            return { centroX: null, centroY: null, proporcao: 0, larguraRelativa: 0, alturaRelativa: 0 };
+        }
+
+        const faixaX = faixaPercentil(contagemX, encontrados);
+        const faixaY = faixaPercentil(contagemY, encontrados);
+
         return {
-            centroX: encontrados > 0 ? somaX / encontrados : null,
-            proporcao: total > 0 ? encontrados / total : 0
+            centroX: faixaX.centro,
+            centroY: faixaY.centro,
+            proporcao: encontrados / (largura * altura),
+            larguraRelativa: faixaX.tamanho / largura,
+            alturaRelativa: faixaY.tamanho / altura
+        };
+    }
+
+    /**
+     * Faixa onde os pixels de pele se concentram num eixo: começa em 8% e
+     * termina em 92% da contagem acumulada.
+     * @param {Uint16Array} contagens
+     * @param {number} total
+     * @returns {{inicio: number, fim: number, centro: number, tamanho: number}}
+     */
+    function faixaPercentil(contagens, total) {
+        const alvoInicio = total * 0.08;
+        const alvoFim = total * 0.92;
+        let acumulado = 0;
+        let inicio = 0;
+        let fim = contagens.length - 1;
+        let comecou = false;
+
+        for (let i = 0; i < contagens.length; i++) {
+            acumulado += contagens[i];
+            if (!comecou && acumulado >= alvoInicio) {
+                inicio = i;
+                comecou = true;
+            }
+            if (acumulado >= alvoFim) {
+                fim = i;
+                break;
+            }
+        }
+
+        if (fim < inicio) fim = inicio;
+
+        return {
+            inicio: inicio,
+            fim: fim,
+            centro: (inicio + fim) / 2,
+            tamanho: fim - inicio
         };
     }
 
@@ -411,7 +482,10 @@
                     const caixa = rostos[0].boundingBox;
                     amostra = {
                         centroX: caixa.x + caixa.width / 2,
-                        proporcao: (caixa.width * caixa.height) / (LARGURA * ALTURA)
+                        centroY: caixa.y + caixa.height / 2,
+                        proporcao: (caixa.width * caixa.height) / (LARGURA * ALTURA),
+                        larguraRelativa: caixa.width / LARGURA,
+                        alturaRelativa: caixa.height / ALTURA
                     };
                 }
                 avaliarAmostra(amostra);
@@ -427,8 +501,9 @@
 
     /**
      * Estado do olhar: calibra a posição normal do rosto, acompanha a
-     * aproximação e conta falta grave quando o desvio passa do limite.
-     * @param {{centroX: number|null, proporcao: number}} amostra
+     * aproximação e conta falta grave quando o desvio passa do limite — nos
+     * dois eixos (lado esquerdo/direito e baixo/cima).
+     * @param {{centroX: number|null, centroY?: number|null, proporcao: number}} amostra
      */
     function avaliarAmostra(amostra) {
         const agora = Date.now();
@@ -441,18 +516,30 @@
         semRostoDesde = 0;
         avisouSemRosto = false;
 
+        const temVertical = typeof amostra.centroY === 'number';
+
         // Primeiros segundos: só aprende onde fica o rosto do aluno.
         if (baseCentro === null) {
             amostrasCalibragem.push(amostra);
             if (agora >= calibrandoAte && amostrasCalibragem.length > 0) {
                 let soma = 0;
+                let somaY = 0;
+                let somaAltura = 0;
                 let somaProporcao = 0;
+                let comY = 0;
                 amostrasCalibragem.forEach((item) => {
                     soma += item.centroX;
                     somaProporcao += item.proporcao;
+                    if (typeof item.centroY === 'number') {
+                        somaY += item.centroY;
+                        somaAltura += (item.alturaRelativa || 0) * ALTURA;
+                        comY++;
+                    }
                 });
                 baseCentro = soma / amostrasCalibragem.length;
                 baseProporcao = somaProporcao / amostrasCalibragem.length;
+                baseCentroY = comY > 0 ? somaY / comY : null;
+                baseAlturaY = comY > 0 ? somaAltura / comY : 0;
                 amostrasCalibragem = [];
                 status('Câmera ligada');
             }
@@ -462,36 +549,87 @@
             return;
         }
 
-        const desvio = (amostra.centroX - baseCentro) / LARGURA;
-        const distancia = Math.abs(desvio);
+        // Referência do eixo Y: altura do rosto calibrada. Se ela não foi
+        // medida (navegador sem FaceDetector em quadro ruim), cai para 30% do
+        // quadro, que é o tamanho típico de um rosto enquadrado de perto.
+        const referenciaY = baseAlturaY > ALTURA * 0.08 ? baseAlturaY : ALTURA * 0.30;
+
+        const desvioX = (amostra.centroX - baseCentro) / LARGURA;
+        const desvioY = (temVertical && baseCentroY !== null)
+            ? (amostra.centroY - baseCentroY) / referenciaY
+            : 0;
+        const distanciaX = Math.abs(desvioX);
+        const distanciaY = Math.abs(desvioY);
+
+        const desviouLado = distanciaX >= LIMIAR_DESVIO;
+        const desviouVertical = distanciaY >= LIMIAR_DESVIO_Y;
 
         // Voltou para o centro: limpa o aviso na hora, sem esperar confirmação
         // (era isso que deixava o "olhando para o lado" na tela depois da volta).
-        if (distancia < LIMIAR_DESVIO) {
+        if (!desviouLado && !desviouVertical) {
             if (desvioDesde) limparDesvio();
 
             // Reaproxima a base devagar: o aluno pode mudar de posição na cadeira.
-            if (distancia <= LIMIAR_VOLTA) {
+            if (distanciaX <= LIMIAR_VOLTA && distanciaY <= LIMIAR_VOLTA_Y) {
                 baseCentro += (amostra.centroX - baseCentro) * 0.06;
                 baseProporcao += (amostra.proporcao - baseProporcao) * 0.06;
+                if (temVertical && baseCentroY !== null) {
+                    baseCentroY += (amostra.centroY - baseCentroY) * 0.06;
+                }
             }
             return;
         }
 
-        const lado = desvio > 0 ? 'direita' : 'esquerda';
+        // Qual desvio manda: compara o quanto cada eixo passou do próprio limite.
+        let direcao;
+        if (desviouLado && (!desviouVertical
+                || distanciaX / LIMIAR_DESVIO >= distanciaY / LIMIAR_DESVIO_Y)) {
+            direcao = desvioX > 0 ? 'direita' : 'esquerda';
+        } else {
+            direcao = desvioY > 0 ? 'baixo' : 'cima';
+        }
 
-        if (!desvioDesde || lado !== ladoDesvio) {
+        // Se a direção atual ainda está fora do limite, ela continua valendo:
+        // sem isso, dois eixos desviados juntos reiniciavam o relógio a cada
+        // quadro e a falta nunca era contada.
+        if (desvioDesde && direcao !== ladoDesvio && aindaDesviado(ladoDesvio, desvioX, desvioY)) {
+            direcao = ladoDesvio;
+        }
+
+        if (!desvioDesde || direcao !== ladoDesvio) {
             desvioDesde = agora;
-            ladoDesvio = lado;
+            ladoDesvio = direcao;
             avisouDesvio = false;
-            status(`Olhando para a ${lado}...`, true);
+            status(`Olhando ${descricaoDirecao(direcao)}...`, true);
             return;
         }
 
-        if (!avisouDesvio && agora - desvioDesde >= TEMPO_DESVIO_MS) {
+        const tempoNecessario = ehVertical(direcao) ? TEMPO_DESVIO_VERTICAL_MS : TEMPO_DESVIO_MS;
+        if (!avisouDesvio && agora - desvioDesde >= tempoNecessario) {
             avisouDesvio = true;
-            registrarFaltaDeOlhar(lado);
+            registrarFaltaDeOlhar(direcao, tempoNecessario);
         }
+    }
+
+    function ehVertical(direcao) {
+        return direcao === 'baixo' || direcao === 'cima';
+    }
+
+    /** O desvio de `direcao` ainda passa do limite neste quadro? */
+    function aindaDesviado(direcao, desvioX, desvioY) {
+        if (direcao === 'direita') return desvioX >= LIMIAR_DESVIO;
+        if (direcao === 'esquerda') return desvioX <= -LIMIAR_DESVIO;
+        if (direcao === 'baixo') return desvioY >= LIMIAR_DESVIO_Y;
+        if (direcao === 'cima') return desvioY <= -LIMIAR_DESVIO_Y;
+        return false;
+    }
+
+    /** Texto usado no status e no evento: "para a direita", "para baixo"... */
+    function descricaoDirecao(direcao) {
+        if (direcao === 'direita') return 'para a direita';
+        if (direcao === 'esquerda') return 'para a esquerda';
+        if (direcao === 'baixo') return 'para baixo';
+        return 'para cima';
     }
 
     function tratarSemRosto(agora) {
@@ -523,11 +661,11 @@
         if (anti && typeof anti.esconderAviso === 'function') anti.esconderAviso();
     }
 
-    function registrarFaltaDeOlhar(lado) {
-        const segundos = (TEMPO_DESVIO_MS / 1000).toFixed(1).replace('.', ',');
-        const descricao = `O aluno desviou o olhar para a ${lado} por mais de ${segundos} segundos`;
+    function registrarFaltaDeOlhar(direcao, tempoMs) {
+        const segundos = (tempoMs / 1000).toFixed(1).replace('.', ',');
+        const descricao = `O aluno desviou o olhar ${descricaoDirecao(direcao)} por mais de ${segundos} segundos`;
 
-        status(`Olhar desviado (${lado})`, true);
+        status(`Olhar desviado ${descricaoDirecao(direcao)}`, true);
 
         const anti = window.AntiCheat;
         if (anti && typeof anti.violacao === 'function') {
@@ -594,6 +732,8 @@
                 ligada: !!stream,
                 calibrada: baseCentro !== null,
                 baseCentro,
+                baseCentroY,
+                baseAlturaY,
                 baseProporcao,
                 desvioDesde,
                 ladoDesvio,

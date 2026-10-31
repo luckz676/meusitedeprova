@@ -41,14 +41,25 @@ direita. Se a câmera for desligada no meio da prova, o portão volta e conta **
 Nada conta falta antes de a prova começar: enquanto o portão da câmera (ou o da tela cheia) está na tela, o
 foco que o **prompt de permissão do Chrome** rouba não é tratado como saída da prova.
 
-**Detecção de olhar para o lado:** a cada 0,25s o quadro da câmera é analisado. O sistema calibra a posição
-normal do rosto nos primeiros 3s e, se o rosto ficar desviado do centro por mais de 1s, conta **falta
-grave** (`olhar_desviado`) e mostra o gif *OLHE PARA A PROVA!* (que some em 2,5s). Quando o rosto volta para
-o centro o aviso e a borda vermelha saem na hora. Ficar 8s sem rosto no enquadramento registra
-`rosto_fora` e avisa, sem contar falta. A análise usa a API `FaceDetector` quando o navegador tem; sem ela,
-usa o centro de massa da região de pele do quadro — pega desvios claros de cabeça (virar para uma segunda
-tela ou celular ao lado) e pode errar em ambiente escuro. Nenhum site consegue medir para onde os olhos
-apontam sem rastreio facial. A câmera exige **https** ou `localhost`.
+**Detecção de olhar desviado (lado, baixo e cima):** a cada 0,25s o quadro da câmera é analisado nos dois
+eixos. O sistema calibra a posição normal do rosto nos primeiros 3s e conta **falta grave** (`olhar_desviado`)
+com o gif *OLHE PARA A PROVA!* (que some em 2,5s) quando o rosto fica fora do centro:
+
+| Desvio | Limite | Tempo para contar |
+|---|---|---|
+| Para a esquerda/direita | 10% da largura do quadro | 1,0s |
+| Para baixo/cima | 22% da altura do rosto | 1,3s |
+
+O eixo vertical usa a altura do próprio rosto como régua (e não a do quadro), então o mesmo aceno vale o
+mesmo para quem está perto ou longe da câmera. O tempo maior no vertical é de propósito: baixar a cabeça
+para o teclado por um instante faz parte de digitar. Quando o rosto volta ao centro o aviso e a borda
+vermelha saem na hora. Ficar 8s sem rosto no enquadramento registra `rosto_fora` e avisa, sem contar falta.
+
+A análise usa a API `FaceDetector` quando o navegador tem; sem ela, usa a faixa onde a pele se concentra
+(descartando as pontas, o que ignora mão, pescoço e parede bege) — pega desvios claros de cabeça (virar
+para uma segunda tela, olhar o celular no colo, olhar o teto) e pode errar em ambiente escuro ou com a mão
+na frente do rosto. Nenhum site consegue medir para onde os olhos apontam sem rastreio facial. A câmera
+exige **https** ou `localhost`.
 
 **Barra de status do anti-cola:** um cartão fixo no canto da tela mostra `🛡️ Anti-cola ativo`, o contador de
 **faltas graves** (`x de 5`) e o estado da tela cheia. Quando o aluno está fora da tela cheia a barra fica
