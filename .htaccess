@@ -1,0 +1,77 @@
+# Apache Configuration for Sistema de Avaliação Acadêmica
+
+# Habilita rewrite engine
+RewriteEngine On
+
+# Segurança: Oculta arquivos sensíveis (arquivos começando com ponto)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(sql|log|ini|md)$">
+    Require all denied
+</FilesMatch>
+
+# Protege a pasta includes
+RewriteRule ^includes/ - [F,L]
+
+# Headers de segurança
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # camera=(self): a prova precisa da webcam. Antes estava camera=() e, numa
+    # hospedagem que respeita este cabeçalho (Apache/LiteSpeed), o navegador
+    # recusava a câmera antes mesmo de pedir permissão ao aluno.
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(self)"
+</IfModule>
+
+# Compressão
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Imagens podem ficar em cache por bastante tempo (os gifs são grandes)
+<FilesMatch "\.(png|jpe?g|gif|svg|webp)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "public, max-age=2592000"
+    </IfModule>
+    <IfModule mod_expires.c>
+        ExpiresActive On
+        ExpiresByType image/gif "access plus 1 month"
+        ExpiresByType image/png "access plus 1 month"
+        ExpiresByType image/jpeg "access plus 1 month"
+        ExpiresByType image/svg+xml "access plus 1 month"
+    </IfModule>
+</FilesMatch>
+
+# CSS e JS mudam a cada ajuste: o navegador é obrigado a revalidar sempre,
+# senão o usuário continua vendo a versão antiga guardada em cache.
+<FilesMatch "\.(css|js)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, must-revalidate"
+    </IfModule>
+    <IfModule mod_expires.c>
+        ExpiresActive On
+        ExpiresByType text/css "access plus 0 seconds"
+        ExpiresByType application/javascript "access plus 0 seconds"
+    </IfModule>
+</FilesMatch>
+
+# PHP Settings (se permitido no .htaccess)
+<IfModule mod_php.c>
+    php_value session.cookie_httponly 1
+    php_value session.cookie_secure 0
+    php_value session.use_strict_mode 1
+    php_value session.cookie_samesite "Strict"
+    php_value expose_php 0
+</IfModule>
+
+# Redireciona raiz para login
+DirectoryIndex login.php
+
+# Error pages
+ErrorDocument 403 /avaliacao%20web/login.php
+ErrorDocument 404 /avaliacao%20web/login.php
+ErrorDocument 500 /avaliacao%20web/login.php
