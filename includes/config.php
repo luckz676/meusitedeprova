@@ -7,6 +7,14 @@
 // evitando que o tempo restante da avaliação seja calculado errado.
 date_default_timezone_set('America/Sao_Paulo');
 
+// Credenciais da hospedagem: hospedagens gratuitas (InfinityFree, por
+// exemplo) não deixam definir variáveis de ambiente no painel. Nesse caso o
+// arquivo abaixo, que fica fora do Git e da pasta pública (o .htaccess bloqueia
+// includes/), preenche $_ENV com os valores do banco.
+if (is_file(__DIR__ . '/config.local.php')) {
+    require __DIR__ . '/config.local.php';
+}
+
 /**
  * Lê uma configuração das variáveis de ambiente, caindo no valor padrão
  * quando ela não existe. É assim que o site roda tanto no XAMPP local
