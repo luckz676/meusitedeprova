@@ -190,7 +190,7 @@ if ($acao === 'ver' && $avaliacaoId > 0) {
                                         $duracao = '—';
                                         if ($av['fim']) {
                                             $diff = strtotime($av['fim']) - strtotime($av['inicio']);
-                                            $duracao = gmdate('H:i:s', $diff);
+                                            $duracao = formatarDuracao($diff);
                                         }
                                         $eventosCount = 0;
                                         try {

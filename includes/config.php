@@ -121,6 +121,16 @@ function getDbConnection(): PDO
             }
 
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+
+            // O relógio do MySQL não é o mesmo do PHP: no Aiven (Render) e no
+            // InfinityFree o servidor do banco roda em UTC, enquanto o site
+            // trabalha em America/Sao_Paulo. Sem isto, tudo que era gravado
+            // com NOW()/CURRENT_TIMESTAMP ficava 3 horas no futuro — a prova
+            // feita às 19h41 aparecia como 22h41 e uma prova da noite
+            // "terminava" no dia seguinte. Alinhar a sessão do banco com o
+            // fuso do PHP resolve NOW(), os DEFAULT CURRENT_TIMESTAMP e a
+            // leitura das colunas TIMESTAMP de uma vez.
+            $pdo->exec("SET time_zone = '" . date('P') . "'");
         } catch (PDOException $e) {
             error_log("Erro de conexão com banco: " . $e->getMessage());
             throw new Exception("Erro de conexão com o banco de dados");
@@ -291,6 +301,22 @@ function formatarData($data, string $formato = 'd/m/Y H:i:s'): string
         return $data->format($formato);
     }
     return (new DateTime($data))->format($formato);
+}
+
+/**
+ * Formata uma duração em segundos para leitura humana (ex: "1:36:38",
+ * "2d 10:44:06"). Usa gmdate só até 24h: uma prova esquecida aberta por
+ * dias aparecia como "10:44:06", como se tivesse durado menos de 11 horas.
+ * @param int $segundos
+ * @return string
+ */
+function formatarDuracao(int $segundos): string
+{
+    $segundos = max(0, $segundos);
+    $dias = intdiv($segundos, 86400);
+    $resto = gmdate('H:i:s', $segundos % 86400);
+
+    return $dias > 0 ? $dias . 'd ' . $resto : $resto;
 }
 
 /**

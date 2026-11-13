@@ -113,7 +113,7 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
                 <span><strong>Data:</strong> <?= formatarData($avaliacao['inicio'], 'd/m/Y') ?></span>
                 <span><strong>Início:</strong> <?= formatarData($avaliacao['inicio'], 'H:i:s') ?></span>
                 <span><strong>Término:</strong> <?= $avaliacao['fim'] ? formatarData($avaliacao['fim'], 'H:i:s') : '—' ?></span>
-                <span><strong>Duração:</strong> <?= $avaliacao['fim'] ? gmdate('H:i:s', strtotime($avaliacao['fim']) - strtotime($avaliacao['inicio'])) : '—' ?></span>
+                <span><strong>Duração:</strong> <?= $avaliacao['fim'] ? formatarDuracao(strtotime($avaliacao['fim']) - strtotime($avaliacao['inicio'])) : '—' ?></span>
                 <span><strong>Status:</strong>
                     <span class="badge <?= match($avaliacao['status']) { 'finalizada' => 'success', 'tempo_esgotado' => 'warning', 'fraude' => 'danger', default => 'secondary' } ?>">
                         <?= $avaliacao['status'] === 'fraude' ? 'Encerrada por fraude' : ucfirst(str_replace('_', ' ', $avaliacao['status'])) ?>
