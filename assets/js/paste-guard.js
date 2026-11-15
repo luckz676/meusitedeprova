@@ -9,14 +9,25 @@
 (function() {
     'use strict';
 
-    const BASE_URL = (window.AVALIACAO_CONFIG && window.AVALIACAO_CONFIG.baseUrl) || '/avaliacao web';
+    const CONFIG = window.AVALIACAO_CONFIG || {};
+    const BASE_URL = CONFIG.baseUrl || '/avaliacao web';
+
+    // Modo leve: site sem os gifs (ligado no config.local.php da hospedagem).
+    // Aqui o aviso aparece apenas com o texto, numa frase mais suave.
+    const MODO_LEVE = CONFIG.modoLeve === true;
 
     // Loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
     // Sobre o anti-cheat.js este loop é compartilhado via indiceLoop; aqui é independente
     // (páginas que não são a prova usam apenas este arquivo).
     const AVISOS = [
-        { gif: `${BASE_URL}/assets/gifs/silly-tamamo.gif`, texto: 'cole não meu rei, desista e morra' },
-        { gif: `${BASE_URL}/assets/gifs/scary-oguri.gif`, texto: 'O QUE EU TE FALEI AGORA?' }
+        {
+            gif: `${BASE_URL}/assets/gifs/silly-tamamo.gif`,
+            texto: MODO_LEVE ? 'Sem colar, hein? Responda com suas palavras 😊' : 'cole não meu rei, desista e morra'
+        },
+        {
+            gif: `${BASE_URL}/assets/gifs/scary-oguri.gif`,
+            texto: MODO_LEVE ? 'Vamos com calma — confie no que você estudou.' : 'O QUE EU TE FALEI AGORA?'
+        }
     ];
 
     const DURACAO_MS = 4000;
@@ -48,7 +59,7 @@
         gifEl.alt = 'Alerta: colar não é permitido';
 
         inner.appendChild(textoEl);
-        inner.appendChild(gifEl);
+        if (!MODO_LEVE) inner.appendChild(gifEl);
         overlay.appendChild(inner);
         document.body.appendChild(overlay);
 
@@ -70,7 +81,7 @@
         tentativas += 1;
 
         textoEl.textContent = aviso.texto;
-        gifEl.src = aviso.gif;
+        if (!MODO_LEVE) gifEl.src = aviso.gif;
         overlay.classList.add('is-visible');
 
         clearTimeout(esconderTimer);

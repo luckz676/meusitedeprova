@@ -25,6 +25,11 @@
     const baseUrl = config.baseUrl || '/avaliacao web';
     const limiteFaltas = parseInt(config.limiteFaltas, 10) || 0;
 
+    // Modo leve: site sem os gifs (ligado no config.local.php da hospedagem).
+    // A câmera continua igual; só as imagens é que não aparecem.
+    const MODO_LEVE = config.modoLeve === true;
+    const frase = (normal, leve) => (MODO_LEVE ? leve : normal);
+
     const GIFS = {
         portao: `${baseUrl}/assets/gifs/cute-stay-gold.gif`,
         esquerda: `${baseUrl}/assets/gifs/cute-stay-gold.gif`,
@@ -128,7 +133,7 @@
         portao.innerHTML = `
             <div class='gif-overlay__inner'>
                 <p class='gif-overlay__texto'>MODO PROVA — CÂMERA OBRIGATÓRIA</p>
-                <img class='gif-overlay__gif' src='${GIFS.portao}' alt='Stay Gold'>
+                ${MODO_LEVE ? '' : `<img class='gif-overlay__gif' src='${GIFS.portao}' alt='Stay Gold'>`}
                 <p class='gif-overlay__detalhe'>
                     A prova é monitorada pela webcam. A câmera fica ligada no topo da página
                     durante toda a avaliação. ${textoLimite}
@@ -222,12 +227,12 @@
         barra.className = 'webcam-barra';
         barra.id = 'webcam-barra';
         barra.innerHTML = `
-            <img class='webcam-barra__gif' src='${GIFS.esquerda}' alt='Stay Gold'>
+            ${MODO_LEVE ? '' : `<img class='webcam-barra__gif' src='${GIFS.esquerda}' alt='Stay Gold'>`}
             <div class='webcam-barra__moldura'>
                 <video class='webcam-barra__video' id='webcam-video' autoplay muted playsinline></video>
                 <span class='webcam-barra__status' id='webcam-status'>Calibrando a câmera...</span>
             </div>
-            <img class='webcam-barra__gif' src='${GIFS.direita}' alt='Aston Machan'>
+            ${MODO_LEVE ? '' : `<img class='webcam-barra__gif' src='${GIFS.direita}' alt='Aston Machan'>`}
         `;
         document.body.insertBefore(barra, document.body.firstChild);
 
@@ -329,7 +334,7 @@
             anti.violacao('webcam:caiu', {
                 tipoEvento: 'webcam_desligada',
                 descricao: descricao,
-                aviso: { gif: GIFS.portao, texto: 'LIGUE A CÂMERA DE VOLTA!' },
+                aviso: { gif: GIFS.portao, texto: frase('LIGUE A CÂMERA DE VOLTA!', 'Ligue a câmera de volta, por favor.') },
                 grave: true,
                 cooldownMs: 5000
             });
@@ -644,7 +649,7 @@
             avisouSemRosto = true;
             status('Rosto fora do enquadramento', true);
             registrarEvento('rosto_fora', 'A câmera ficou mais de 8 segundos sem encontrar o rosto');
-            avisarOlhar(GIFS.olhar, 'MANTENHA O ROSTO NA CÂMERA!', false);
+            avisarOlhar(GIFS.olhar, frase('MANTENHA O ROSTO NA CÂMERA!', 'Mantenha o rosto na câmera, por favor.'), false);
         }
     }
 
@@ -674,7 +679,7 @@
                 descricao: descricao,
                 aviso: {
                     gif: GIFS.olhar,
-                    texto: 'OLHE PARA A PROVA!',
+                    texto: frase('OLHE PARA A PROVA!', 'Olhe para a prova, por favor.'),
                     // some rápido: o aluno já voltou, não precisa cobrir a questão
                     duracaoMs: DURACAO_AVISO_OLHAR_MS
                 },
@@ -683,7 +688,7 @@
             });
         } else {
             registrarEvento('olhar_desviado', descricao);
-            avisarOlhar(GIFS.olhar, 'OLHE PARA A PROVA!', false);
+            avisarOlhar(GIFS.olhar, frase('OLHE PARA A PROVA!', 'Olhe para a prova, por favor.'), false);
         }
 
         // A borda vermelha acompanha o aviso na tela e sai junto com ele.

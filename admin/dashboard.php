@@ -40,6 +40,7 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
                 <ul>
                     <li><a href="/avaliacao web/admin/dashboard.php" class="active">📊 Dashboard</a></li>
                     <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
                     <li><a href="/avaliacao web/admin/usuarios.php">👥 Usuários</a></li>
                     <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
                     <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
@@ -166,7 +167,8 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
                 <h3>Ações Rápidas</h3>
                 <div class="quick-actions">
                     <a href="/avaliacao web/admin/questoes.php?acao=novo" class="btn btn-primary">➕ Nova Questão</a>
-                    <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-secondary">👤 Novo Usuário</a>
+                    <a href="/avaliacao web/admin/alunos.php" class="btn btn-secondary">🎓 Cadastrar Aluno</a>
+                    <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-outline">👤 Novo Usuário</a>
                     <a href="/avaliacao web/admin/eventos.php" class="btn btn-outline">🚨 Ver Eventos Suspeitos</a>
                 </div>
             </section>

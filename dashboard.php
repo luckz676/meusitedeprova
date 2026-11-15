@@ -122,7 +122,11 @@ if ($avaliacaoAtiva) {
                     <h3>Última Avaliação Concluída</h3>
                     <?php if ($ultimaFoiFraude): ?>
                         <p class="fraude">
-                            🚨 Esta prova foi <strong>encerrada por fraude</strong> pelo sistema anti-cola.
+                            <?php if (MODO_LEVE): ?>
+                                Esta prova foi <strong>encerrada automaticamente</strong> pelo sistema de acompanhamento.
+                            <?php else: ?>
+                                🚨 Esta prova foi <strong>encerrada por fraude</strong> pelo sistema anti-cola.
+                            <?php endif; ?>
                         </p>
                     <?php endif; ?>
                     <p>

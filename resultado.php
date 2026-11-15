@@ -260,10 +260,12 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
             <a href="/avaliacao web/dashboard.php" class="btn btn-primary">Voltar ao Dashboard</a>
         </div>
 
-        <div class="gif-banner">
-            <img src="/avaliacao web/assets/gifs/suit-oguri-cap.gif" alt="Oguri de terno comemorando" class="gif-banner__img">
-            <p class="gif-banner__texto">ebaaaa meu site tá muito bom né?</p>
-        </div>
+        <?php if (!MODO_LEVE): ?>
+            <div class="gif-banner">
+                <img src="/avaliacao web/assets/gifs/suit-oguri-cap.gif" alt="Oguri de terno comemorando" class="gif-banner__img">
+                <p class="gif-banner__texto">ebaaaa meu site tá muito bom né?</p>
+            </div>
+        <?php endif; ?>
     </main>
 
     <footer class="main-footer">

@@ -87,12 +87,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <div class="gif-banner login-gif">
-            <img src="/avaliacao web/assets/gifs/spinning-oguri.gif" alt="Oguri girando" class="gif-banner__img login-gif__img">
-            <p class="gif-banner__texto">espero que esteja bom</p>
-        </div>
+        <?php if (!MODO_LEVE): ?>
+            <div class="gif-banner login-gif">
+                <img src="/avaliacao web/assets/gifs/spinning-oguri.gif" alt="Oguri girando" class="gif-banner__img login-gif__img">
+                <p class="gif-banner__texto">espero que esteja bom</p>
+            </div>
+        <?php endif; ?>
     </div>
 
+    <script>
+        window.AVALIACAO_CONFIG = {
+            baseUrl: '/avaliacao web',
+            modoLeve: <?= MODO_LEVE ? 'true' : 'false' ?>
+        };
+    </script>
     <script src="/avaliacao web/assets/js/paste-guard.js?v=<?= versaoEstatico('assets/js/paste-guard.js') ?>"></script>
 </body>
 </html>

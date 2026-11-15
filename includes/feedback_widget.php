@@ -66,6 +66,12 @@ if (!function_exists('renderFeedbackWidget')) {
         if (!$scriptIncluido) {
             $scriptIncluido = true;
             ?>
+            <script>
+                window.AVALIACAO_CONFIG = Object.assign(window.AVALIACAO_CONFIG || {}, {
+                    baseUrl: '/avaliacao web',
+                    modoLeve: <?= MODO_LEVE ? 'true' : 'false' ?>
+                });
+            </script>
             <script src="/avaliacao web/assets/js/feedback.js?v=<?= versaoEstatico('assets/js/feedback.js') ?>"></script>
             <?php
         }

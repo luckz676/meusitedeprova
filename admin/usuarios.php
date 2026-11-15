@@ -142,6 +142,7 @@ if ($acao === 'listar') {
                 <ul>
                     <li><a href="/avaliacao web/admin/dashboard.php">📊 Dashboard</a></li>
                     <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
                     <li><a href="/avaliacao web/admin/usuarios.php" class="active">👥 Usuários</a></li>
                     <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
                     <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>

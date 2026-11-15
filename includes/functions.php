@@ -501,6 +501,70 @@ function listarUsuarios(): array
 }
 
 /**
+ * Verifica se já existe alguém com este e-mail (ou este login)
+ * @param string $email
+ * @param string|null $usuario
+ * @return bool
+ */
+function usuarioJaCadastrado(string $email, ?string $usuario = null): bool
+{
+    try {
+        $pdo = getDbConnection();
+        $sql = "SELECT COUNT(*) FROM usuarios WHERE email = ?";
+        $params = [$email];
+
+        if ($usuario !== null && $usuario !== '') {
+            $sql .= " OR usuario = ?";
+            $params[] = $usuario;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn() > 0;
+    } catch (Exception $e) {
+        error_log("Erro ao verificar usuário existente: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Lista os alunos (admin), com quantas provas cada um já fez
+ * @param string $busca Filtra por nome, e-mail ou login
+ * @return array
+ */
+function listarAlunos(string $busca = ''): array
+{
+    try {
+        $pdo = getDbConnection();
+
+        $sql = "SELECT u.id, u.nome, u.usuario, u.email, u.ativo, u.created_at,
+                       (SELECT COUNT(*) FROM avaliacoes a WHERE a.usuario_id = u.id) AS total_provas,
+                       (SELECT COUNT(*) FROM avaliacoes a
+                         WHERE a.usuario_id = u.id AND a.status IN ('finalizada', 'tempo_esgotado', 'fraude')) AS provas_entregues,
+                       (SELECT MAX(a.inicio) FROM avaliacoes a WHERE a.usuario_id = u.id) AS ultima_prova
+                FROM usuarios u
+                WHERE u.tipo = 'aluno'";
+        $params = [];
+
+        if ($busca !== '') {
+            $sql .= " AND (u.nome LIKE ? OR u.email LIKE ? OR u.usuario LIKE ?)";
+            $params[] = '%' . $busca . '%';
+            $params[] = '%' . $busca . '%';
+            $params[] = '%' . $busca . '%';
+        }
+
+        $sql .= " ORDER BY u.nome";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    } catch (Exception $e) {
+        error_log("Erro ao listar alunos: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
  * Lista todas as avaliações (admin)
  * @return array
  */

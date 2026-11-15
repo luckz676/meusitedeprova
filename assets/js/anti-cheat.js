@@ -26,13 +26,24 @@
 
     const gif = (nome) => `${baseUrl}/assets/gifs/${nome}`;
 
+    // Modo leve: hospedagem que roda o site sem os gifs (liga no config.local.php
+    // dela). Aqui os avisos aparecem só com o texto e as frases são mais suaves.
+    const MODO_LEVE = config.modoLeve === true;
+    const frase = (normal, leve) => (MODO_LEVE ? leve : normal);
+
     // O loop de dois gifs: 1ª tentativa silly-tamamo, 2ª scary-oguri, e volta.
     // É sempre este mesmo par (gif + frase) para todas as violações de cópia/
     // colagem, seleção, teclas e botão direito. Nas teclas bloqueadas o loop
     // mostra a frase e o texto de baixo diz qual tecla foi apertada.
     const LOOP_AVISOS = [
-        { gif: gif('silly-tamamo.gif'), texto: 'cole não meu rei, desista e morra' },
-        { gif: gif('scary-oguri.gif'), texto: 'O QUE EU TE FALEI AGORA?' }
+        {
+            gif: gif('silly-tamamo.gif'),
+            texto: frase('cole não meu rei, desista e morra', 'Sem colar, hein? Responda com suas palavras 😊')
+        },
+        {
+            gif: gif('scary-oguri.gif'),
+            texto: frase('O QUE EU TE FALEI AGORA?', 'Vamos com calma — confie no que você estudou.')
+        }
     ];
 
     // Textos e gifs de cada tipo de violação
@@ -42,12 +53,12 @@
         tecla: LOOP_AVISOS,
         selecao: LOOP_AVISOS,
         contexto: LOOP_AVISOS,
-        aba: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
-        janela: { gif: gif('scary-oguri.gif'), texto: 'VOLTE PARA A PROVA AGORA!', bloqueia: true },
-        telaCheia: { gif: gif('angry-oguri.gif'), texto: 'TELA CHEIA É OBRIGATÓRIA!', bloqueia: true },
-        devtools: { gif: gif('angry-oguri.gif'), texto: 'FECHE AS FERRAMENTAS DE DESENVOLVEDOR!', bloqueia: true },
-        windows: { gif: gif('angry-oguri.gif'), texto: 'A TECLA WINDOWS ESTÁ BLOQUEADA!' },
-        fraude: { gif: gif('angry-oguri.gif'), texto: 'PROVA FINALIZADA POR FRAUDE!', bloqueia: true }
+        aba: { gif: gif('scary-oguri.gif'), texto: frase('VOLTE PARA A PROVA AGORA!', 'Volte para a prova, por favor.'), bloqueia: true },
+        janela: { gif: gif('scary-oguri.gif'), texto: frase('VOLTE PARA A PROVA AGORA!', 'Mantenha a janela da prova em foco, por favor.'), bloqueia: true },
+        telaCheia: { gif: gif('angry-oguri.gif'), texto: frase('TELA CHEIA É OBRIGATÓRIA!', 'Continue em tela cheia, por favor.'), bloqueia: true },
+        devtools: { gif: gif('angry-oguri.gif'), texto: frase('FECHE AS FERRAMENTAS DE DESENVOLVEDOR!', 'Feche as ferramentas de desenvolvedor, por favor.'), bloqueia: true },
+        windows: { gif: gif('angry-oguri.gif'), texto: frase('A TECLA WINDOWS ESTÁ BLOQUEADA!', 'Essa tecla fica desativada durante a prova.') },
+        fraude: { gif: gif('angry-oguri.gif'), texto: frase('PROVA FINALIZADA POR FRAUDE!', 'Sua prova foi encerrada.'), bloqueia: true }
     };
 
     /* ============= PRÉ-CARGA DOS GIFS ============= */
@@ -55,16 +66,18 @@
     // Os gifs são grandes (até 6 MB). Sem pré-carga o aviso aparece sem imagem
     // por alguns segundos e parece que o anti-cola não funcionou.
     const urlsDosGifs = new Set();
-    Object.keys(AVISOS).forEach((chave) => {
-        const aviso = AVISOS[chave];
-        (Array.isArray(aviso) ? aviso : [aviso]).forEach((item) => {
-            if (item && item.gif) urlsDosGifs.add(item.gif);
+    if (!MODO_LEVE) {
+        Object.keys(AVISOS).forEach((chave) => {
+            const aviso = AVISOS[chave];
+            (Array.isArray(aviso) ? aviso : [aviso]).forEach((item) => {
+                if (item && item.gif) urlsDosGifs.add(item.gif);
+            });
         });
-    });
-    urlsDosGifs.forEach((url) => {
-        const img = new Image();
-        img.src = url;
-    });
+        urlsDosGifs.forEach((url) => {
+            const img = new Image();
+            img.src = url;
+        });
+    }
 
     let faltas = 0;
     // A prova só começa a valer depois que o aluno libera a câmera e fecha o
@@ -161,7 +174,7 @@
         });
 
         inner.appendChild(tituloEl);
-        inner.appendChild(gifEl);
+        if (!MODO_LEVE) inner.appendChild(gifEl);
         inner.appendChild(detalheEl);
         inner.appendChild(botaoEl);
         overlay.appendChild(inner);
@@ -197,7 +210,7 @@
         criarOverlay();
 
         tituloEl.textContent = aviso.texto;
-        gifEl.src = aviso.gif;
+        if (!MODO_LEVE && aviso.gif) gifEl.src = aviso.gif;
         overlayBloqueia = !!aviso.bloqueia;
         detalheEl.textContent = detalhe || '';
         botaoEl.hidden = !aviso.bloqueia;
@@ -273,7 +286,7 @@
             portaoEl.innerHTML = `
                 <div class='gif-overlay__inner'>
                     <p class='gif-overlay__texto'>MODO PROVA — TELA CHEIA OBRIGATÓRIA</p>
-                    <img class='gif-overlay__gif' src='${gif('spinning-oguri.gif')}' alt='Modo prova'>
+                    ${MODO_LEVE ? '' : `<img class='gif-overlay__gif' src='${gif('spinning-oguri.gif')}' alt='Modo prova'>`}
                     <p class='gif-overlay__detalhe'>
                         A prova roda em tela cheia. Sair da tela cheia, trocar de aba ou perder o foco
                         da janela mostra este aviso e conta <strong>falta grave</strong>.
@@ -391,7 +404,7 @@
         criarOverlay();
         document.querySelectorAll('.gif-overlay').forEach((el) => { if (el !== overlay) el.remove(); });
         tituloEl.textContent = AVISOS.fraude.texto;
-        gifEl.src = AVISOS.fraude.gif;
+        if (!MODO_LEVE && AVISOS.fraude.gif) gifEl.src = AVISOS.fraude.gif;
         detalheEl.textContent = `Você atingiu o limite de ${limiteFaltas} ocorrências. A prova foi encerrada.`;
         botaoEl.hidden = false;
         overlay.classList.add('is-visible');

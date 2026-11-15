@@ -8,7 +8,11 @@
     const form = document.getElementById('feedback-form');
     if (!form) return;
 
-    const baseUrl = '/avaliacao web';
+    const baseUrl = (window.AVALIACAO_CONFIG && window.AVALIACAO_CONFIG.baseUrl) || '/avaliacao web';
+
+    // Modo leve: site sem os gifs (ligado no config.local.php da hospedagem).
+    // Sem gif a reação não tem o que mostrar, então fica só a mensagem de envio.
+    const MODO_LEVE = (window.AVALIACAO_CONFIG && window.AVALIACAO_CONFIG.modoLeve) === true;
     const estrelasWrap = document.getElementById('feedback-stars');
     const inputEstrelas = document.getElementById('feedback-estrelas');
     const comentarioEl = document.getElementById('feedback-comentario');
@@ -100,6 +104,8 @@
     }
 
     function mostrarReacao(estrelas) {
+        if (MODO_LEVE) return;
+
         criarOverlayReacao();
 
         const reacao = estrelas <= 3 ? REACOES.ruim : REACOES.bom;

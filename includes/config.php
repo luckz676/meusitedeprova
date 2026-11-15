@@ -55,6 +55,14 @@ define('DB_SSL_CA', envOuPadrao('DB_SSL_CA', __DIR__ . '/ca.pem'));
 // conexão sem criptografia e você não tiver o certificado da autoridade.
 define('DB_SSL_OBRIGATORIO', envOuPadrao('DB_SSL_OBRIGATORIO', '0') === '1');
 
+// Modo leve: site sem os gifs (login, conclusão, feedback e avisos) e com os
+// textos do anti-cola mais suaves. Fica desligado no código: quem precisa dele
+// liga no includes/config.local.php daquele servidor, que não vai para o Git:
+//   define('MODO_LEVE', true);
+if (!defined('MODO_LEVE')) {
+    define('MODO_LEVE', false);
+}
+
 // Configurações da aplicação
 define('APP_NAME', 'Sistema de Avaliação Acadêmica');
 define('SESSION_NAME', 'avaliacao_session');

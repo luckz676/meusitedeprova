@@ -91,7 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'finaliz
     unset($_SESSION['questoes_avaliacao'][$avaliacaoId]);
 
     if ($encerradaPorFraude) {
-        flash('warning', 'Avaliação encerrada por FRAUDE: você atingiu o limite de saídas/irregularidades permitidas.');
+        flash('warning', MODO_LEVE
+            ? 'Avaliação encerrada automaticamente: você atingiu o limite de ocorrências permitidas.'
+            : 'Avaliação encerrada por FRAUDE: você atingiu o limite de saídas/irregularidades permitidas.');
     } else {
         flash('success', 'Avaliação finalizada com sucesso!');
     }
@@ -126,7 +128,8 @@ $flashes = obterFlashes();
             csrfToken: '<?= e(gerarTokenCSRF()) ?>',
             totalQuestoes: <?= $totalQuestoes ?>,
             limiteFaltas: <?= (int)LIMITE_FALTAS_ANTI_CHEAT ?>,
-            baseUrl: '/avaliacao web'
+            baseUrl: '/avaliacao web',
+            modoLeve: <?= MODO_LEVE ? 'true' : 'false' ?>
         };
     </script>
 </head>
