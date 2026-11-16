@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/icones.php';
 require_once __DIR__ . '/../includes/feedback_widget.php';
 
 requerAdmin();
@@ -38,15 +39,15 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
             <nav class="admin-nav">
                 <h3>Menu</h3>
                 <ul>
-                    <li><a href="/avaliacao web/admin/dashboard.php" class="active">📊 Dashboard</a></li>
-                    <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
-                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
-                    <li><a href="/avaliacao web/admin/usuarios.php">👥 Usuários</a></li>
-                    <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
-                    <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
+                    <li><a href="/avaliacao web/admin/dashboard.php" class="active"><?= icone('dashboard', 16) ?> Dashboard</a></li>
+                    <li><a href="/avaliacao web/admin/questoes.php"><?= icone('questoes', 16) ?> Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php"><?= icone('alunos', 16) ?> Alunos</a></li>
+                    <li><a href="/avaliacao web/admin/usuarios.php"><?= icone('usuarios', 16) ?> Usuários</a></li>
+                    <li><a href="/avaliacao web/admin/avaliacoes.php"><?= icone('avaliacoes', 16) ?> Avaliações</a></li>
+                    <li><a href="/avaliacao web/admin/eventos.php"><?= icone('eventos', 16) ?> Eventos suspeitos</a></li>
                 </ul>
                 <hr style="margin: 1rem 0; border-color: var(--border-color);">
-                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline">👁️ Ver como Aluno</a></li>
+                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline"><?= icone('olho', 15) ?> Ver como aluno</a></li>
             </nav>
         </aside>
 
@@ -56,56 +57,35 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
                 <p>Visão geral do sistema</p>
             </div>
 
-            <!-- Cards de Estatísticas -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">👨‍🎓</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['total_alunos'] ?? 0 ?></span>
-                        <span class="stat-label">Alunos Cadastrados</span>
-                    </div>
+            <!-- Painel de números -->
+            <div class="stat-rail">
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['total_alunos'] ?? 0 ?></span>
+                    <span class="stat-label">Alunos</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📝</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['total_questoes'] ?? 0 ?></span>
-                        <span class="stat-label">Questões Ativas</span>
-                    </div>
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['total_questoes'] ?? 0 ?></span>
+                    <span class="stat-label">Questões ativas</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📋</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['total_avaliacoes'] ?? 0 ?></span>
-                        <span class="stat-label">Total de Avaliações</span>
-                    </div>
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['total_avaliacoes'] ?? 0 ?></span>
+                    <span class="stat-label">Provas aplicadas</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['avaliacoes_finalizadas'] ?? 0 ?></span>
-                        <span class="stat-label">Finalizadas</span>
-                    </div>
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['avaliacoes_finalizadas'] ?? 0 ?></span>
+                    <span class="stat-label">Entregues</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⏳</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['avaliacoes_em_andamento'] ?? 0 ?></span>
-                        <span class="stat-label">Em Andamento</span>
-                    </div>
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['avaliacoes_em_andamento'] ?? 0 ?></span>
+                    <span class="stat-label">Em andamento</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🚨</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['total_eventos_suspeitos'] ?? 0 ?></span>
-                        <span class="stat-label">Eventos Suspeitos</span>
-                    </div>
+                <div class="stat">
+                    <span class="stat-value"><?= $stats['total_eventos_suspeitos'] ?? 0 ?></span>
+                    <span class="stat-label">Ocorrências</span>
                 </div>
-                <div class="stat-card wide">
-                    <div class="stat-icon">📊</div>
-                    <div class="stat-info">
-                        <span class="stat-value"><?= $stats['media_notas'] ?? 0 ?></span>
-                        <span class="stat-label">Média de Notas</span>
-                    </div>
+                <div class="stat stat--destaque">
+                    <span class="stat-value"><?= $stats['media_notas'] ?? 0 ?></span>
+                    <span class="stat-label">Média das notas</span>
                 </div>
             </div>
 
@@ -147,7 +127,7 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
                                             <?= $av['status'] === 'fraude' ? 'Fraude' : ucfirst(str_replace('_', ' ', $av['status'])) ?>
                                         </span>
                                     </td>
-                                    <td><?= $av['nota'] !== null ? number_format($av['nota'], 1) : '—' ?></td>
+                                    <td><?= $av['nota'] !== null ? number_format($av['nota'], 1, ',', '') : '—' ?></td>
                                     <td><?= $av['acertos'] ?? 0 ?> / <?= $av['erros'] ?? 0 ?></td>
                                     <td>
                                         <a href="/avaliacao web/admin/ver_avaliacao.php?id=<?= $av['id'] ?>" class="btn btn-sm btn-outline">Ver</a>
@@ -166,10 +146,10 @@ $avaliacoesRecent = array_slice(listarAvaliacoes(), 0, 10);
             <section class="admin-section">
                 <h3>Ações Rápidas</h3>
                 <div class="quick-actions">
-                    <a href="/avaliacao web/admin/questoes.php?acao=novo" class="btn btn-primary">➕ Nova Questão</a>
-                    <a href="/avaliacao web/admin/alunos.php" class="btn btn-secondary">🎓 Cadastrar Aluno</a>
-                    <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-outline">👤 Novo Usuário</a>
-                    <a href="/avaliacao web/admin/eventos.php" class="btn btn-outline">🚨 Ver Eventos Suspeitos</a>
+                    <a href="/avaliacao web/admin/questoes.php?acao=novo" class="btn btn-primary"><?= icone('mais', 15) ?> Nova questão</a>
+                    <a href="/avaliacao web/admin/alunos.php" class="btn btn-secondary"><?= icone('alunos', 15) ?> Cadastrar aluno</a>
+                    <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-outline"><?= icone('pessoa', 15) ?> Novo usuário</a>
+                    <a href="/avaliacao web/admin/eventos.php" class="btn btn-outline"><?= icone('eventos', 15) ?> Ver eventos suspeitos</a>
                 </div>
             </section>
 

@@ -224,9 +224,13 @@
         if (barra && document.body.contains(barra)) return barra;
 
         barra = document.createElement('div');
-        barra.className = 'webcam-barra';
+        barra.className = MODO_LEVE ? 'webcam-barra webcam-barra--leve' : 'webcam-barra';
         barra.id = 'webcam-barra';
+        // Sem os gifs a faixa fica baixa e o vídeo encosta na esquerda, com o
+        // rótulo de câmera ao lado — em vez de um bloco escuro centralizado.
+        if (MODO_LEVE) document.body.classList.add('sem-gifs');
         barra.innerHTML = `
+            ${MODO_LEVE ? `<span class='webcam-barra__rotulo'>câmera</span>` : ''}
             ${MODO_LEVE ? '' : `<img class='webcam-barra__gif' src='${GIFS.esquerda}' alt='Stay Gold'>`}
             <div class='webcam-barra__moldura'>
                 <video class='webcam-barra__video' id='webcam-video' autoplay muted playsinline></video>

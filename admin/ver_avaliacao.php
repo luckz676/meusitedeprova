@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/icones.php';
 
 requerAdmin();
 
@@ -71,15 +72,15 @@ $eventos = listarEventosSuspeitos($avaliacaoId);
             <nav class="admin-nav">
                 <h3>Menu</h3>
                 <ul>
-                    <li><a href="/avaliacao web/admin/dashboard.php">📊 Dashboard</a></li>
-                    <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
-                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
-                    <li><a href="/avaliacao web/admin/usuarios.php">👥 Usuários</a></li>
-                    <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
-                    <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
+                    <li><a href="/avaliacao web/admin/dashboard.php"><?= icone('dashboard', 16) ?> Dashboard</a></li>
+                    <li><a href="/avaliacao web/admin/questoes.php"><?= icone('questoes', 16) ?> Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php"><?= icone('alunos', 16) ?> Alunos</a></li>
+                    <li><a href="/avaliacao web/admin/usuarios.php"><?= icone('usuarios', 16) ?> Usuários</a></li>
+                    <li><a href="/avaliacao web/admin/avaliacoes.php"><?= icone('avaliacoes', 16) ?> Avaliações</a></li>
+                    <li><a href="/avaliacao web/admin/eventos.php"><?= icone('eventos', 16) ?> Eventos suspeitos</a></li>
                 </ul>
                 <hr style="margin: 1rem 0; border-color: var(--border-color);">
-                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline">👁️ Ver como Aluno</a></li>
+                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline"><?= icone('olho', 15) ?> Ver como aluno</a></li>
             </nav>
         </aside>
 
@@ -94,7 +95,7 @@ $eventos = listarEventosSuspeitos($avaliacaoId);
 
             <?php if ($avaliacao['status'] === 'fraude'): ?>
                 <div class="alert alert-error" style="margin-bottom:1.25rem;">
-                    🚨 <strong>Prova encerrada por fraude.</strong>
+                    <?= icone('alerta', 16) ?> <strong>Prova encerrada por fraude.</strong>
                     O aluno ultrapassou o limite de violações do sistema anti-cola e a avaliação foi
                     finalizada automaticamente. Veja abaixo os eventos registrados.
                 </div>
@@ -109,7 +110,7 @@ $eventos = listarEventosSuspeitos($avaliacaoId);
                     <div><strong>Fim:</strong> <?= $avaliacao['fim'] ? formatarData($avaliacao['fim']) : '—' ?></div>
                     <div><strong>Tempo Limite:</strong> <?= gmdate('H:i:s', $avaliacao['tempo_limite_segundos']) ?></div>
                     <div><strong>Status:</strong> <span class="badge <?= match($avaliacao['status']) { 'finalizada' => 'badge-success', 'tempo_esgotado' => 'badge-warning', 'fraude' => 'badge-danger', 'em_andamento' => 'badge-info', default => 'badge-secondary' } ?>"><?= $avaliacao['status'] === 'fraude' ? 'Fraude' : ucfirst(str_replace('_', ' ', $avaliacao['status'])) ?></span></div>
-                    <div><strong>Nota:</strong> <?= $avaliacao['nota'] !== null ? '<span style="font-size:1.25rem;font-weight:700;color:var(--primary)">' . number_format($avaliacao['nota'],1) . '</span>' : '—' ?></div>
+                    <div><strong>Nota:</strong> <?= $avaliacao['nota'] !== null ? '<span style="font-size:1.25rem;font-weight:700;color:var(--primary)">' . number_format($avaliacao['nota'], 1, ',', '') . '</span>' : '—' ?></div>
                     <div><strong>Acertos:</strong> <?= $avaliacao['acertos'] ?? 0 ?></div>
                     <div><strong>Erros:</strong> <?= $avaliacao['erros'] ?? 0 ?></div>
                     <div><strong>Total:</strong> <?= $avaliacao['total_questoes'] ?? 0 ?></div>
@@ -143,8 +144,8 @@ $eventos = listarEventosSuspeitos($avaliacaoId);
                                 <td><?= $altCorretaTexto ? e($altCorretaTexto) : '—' ?></td>
                                 <td>
                                     <?php if (!$r['alternativa_texto']): ?><span class="badge badge-secondary">Não respondida</span>
-                                    <?php elseif ($correta): ?><span class="badge badge-success">✓ Correta</span>
-                                    <?php else: ?><span class="badge badge-danger">✗ Incorreta</span><?php endif; ?>
+                                    <?php elseif ($correta): ?><span class="badge badge-success">Correta</span>
+                                    <?php else: ?><span class="badge badge-danger">Incorreta</span><?php endif; ?>
                                 </td>
                                 <td><span style="font-family:var(--font-mono)"><?= gmdate('i:s',$r['tempo_resposta_segundos']??0) ?></span></td>
                             </tr>

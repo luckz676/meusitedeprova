@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/icones.php';
 
 requerAdmin();
 
@@ -166,15 +167,15 @@ foreach ($alunos as $a) {
             <nav class="admin-nav">
                 <h3>Menu</h3>
                 <ul>
-                    <li><a href="/avaliacao web/admin/dashboard.php">📊 Dashboard</a></li>
-                    <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
-                    <li><a href="/avaliacao web/admin/alunos.php" class="active">🎓 Alunos</a></li>
-                    <li><a href="/avaliacao web/admin/usuarios.php">👥 Usuários</a></li>
-                    <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
-                    <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
+                    <li><a href="/avaliacao web/admin/dashboard.php"><?= icone('dashboard', 16) ?> Dashboard</a></li>
+                    <li><a href="/avaliacao web/admin/questoes.php"><?= icone('questoes', 16) ?> Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php" class="active"><?= icone('alunos', 16) ?> Alunos</a></li>
+                    <li><a href="/avaliacao web/admin/usuarios.php"><?= icone('usuarios', 16) ?> Usuários</a></li>
+                    <li><a href="/avaliacao web/admin/avaliacoes.php"><?= icone('avaliacoes', 16) ?> Avaliações</a></li>
+                    <li><a href="/avaliacao web/admin/eventos.php"><?= icone('eventos', 16) ?> Eventos suspeitos</a></li>
                 </ul>
                 <hr style="margin: 1rem 0; border-color: var(--border-color);">
-                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline">👁️ Ver como Aluno</a></li>
+                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline"><?= icone('olho', 15) ?> Ver como aluno</a></li>
             </nav>
         </aside>
 
@@ -224,7 +225,7 @@ foreach ($alunos as $a) {
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">➕ Cadastrar aluno</button>
+                        <button type="submit" class="btn btn-primary"><?= icone('mais', 15) ?> Cadastrar aluno</button>
                         <a href="/avaliacao web/admin/usuarios.php" class="btn btn-outline">Gerenciar todos os usuários</a>
                     </div>
                 </form>
@@ -234,7 +235,7 @@ foreach ($alunos as $a) {
                 <div class="section-header">
                     <h3>Alunos cadastrados (<?= count($alunos) ?><?= $busca !== '' ? ' encontrados' : '' ?>)</h3>
                     <form method="GET" action="/avaliacao web/admin/alunos.php" class="admin-search">
-                        <input type="search" name="busca" value="<?= e($busca) ?>" placeholder="Buscar por nome, e-mail ou login">
+                        <input type="search" name="busca" value="<?= e($busca) ?>" placeholder="Buscar aluno">
                         <button type="submit" class="btn btn-secondary btn-sm">Buscar</button>
                         <?php if ($busca !== ''): ?>
                             <a href="/avaliacao web/admin/alunos.php" class="btn btn-outline btn-sm">Limpar</a>
@@ -274,23 +275,23 @@ foreach ($alunos as $a) {
                                     </td>
                                     <td><?= formatarData($aluno['created_at'], 'd/m/Y H:i') ?></td>
                                     <td>
-                                        <?= (int)$aluno['provas_entregues'] ?> entregues
+                                        <?= (int)$aluno['provas_entregues'] ?> <?= (int)$aluno['provas_entregues'] === 1 ? 'entrega' : 'entregas' ?>
                                         <?php if ((int)$aluno['total_provas'] > 0): ?>
-                                            <small>(<?= (int)$aluno['total_provas'] ?> no total)</small>
+                                            <small><?= (int)$aluno['total_provas'] ?> no total</small>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <a href="/avaliacao web/admin/usuarios.php?acao=editar&id=<?= (int)$aluno['id'] ?>"
-                                           class="btn btn-sm btn-secondary" title="Editar">✏️</a>
+                                           class="btn btn-sm btn-secondary" title="Editar"><?= icone('editar', 15) ?></a>
                                         <a href="/avaliacao web/admin/alunos.php?acao=status&id=<?= (int)$aluno['id'] ?>"
                                            class="btn btn-sm btn-outline"
                                            title="<?= $aluno['ativo'] ? 'Bloquear acesso' : 'Liberar acesso' ?>">
-                                            <?= $aluno['ativo'] ? '🚫' : '✅' ?>
+                                            <?= $aluno['ativo'] ? icone('bloquear', 15) : icone('liberar', 15) ?>
                                         </a>
                                         <a href="/avaliacao web/admin/alunos.php?acao=excluir&id=<?= (int)$aluno['id'] ?>&confirm=1"
                                            class="btn btn-sm btn-danger"
                                            onclick="return confirm('Excluir o aluno <?= e(addslashes($aluno['nome'])) ?>? As provas dele também serão apagadas.')"
-                                           title="Excluir">🗑️</a>
+                                           title="Excluir"><?= icone('excluir', 15) ?></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/icones.php';
 
 requerAluno();
 
@@ -110,7 +111,7 @@ $flashes = obterFlashes();
         <?php endforeach; ?>
 
         <div class="card conclusao-card">
-            <div class="conclusao-icone">✅</div>
+            <div class="conclusao-icone"><?= icone('check', 22) ?></div>
             <h2>Avaliação Concluída!</h2>
             <p class="conclusao-subtitulo">Suas respostas foram registradas com sucesso.</p>
 

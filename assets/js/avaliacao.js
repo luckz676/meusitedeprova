@@ -266,7 +266,7 @@
         if (!statusEl) return;
 
         if (questoesRespondidas.has(String(questaoId))) {
-            statusEl.textContent = 'Respondida ✓';
+            statusEl.textContent = 'Respondida';
             statusEl.classList.add('respondida');
         } else {
             statusEl.textContent = 'Não respondida';

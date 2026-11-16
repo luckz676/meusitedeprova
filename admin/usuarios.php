@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/icones.php';
 
 requerAdmin();
 
@@ -140,15 +141,15 @@ if ($acao === 'listar') {
             <nav class="admin-nav">
                 <h3>Menu</h3>
                 <ul>
-                    <li><a href="/avaliacao web/admin/dashboard.php">📊 Dashboard</a></li>
-                    <li><a href="/avaliacao web/admin/questoes.php">📝 Questões</a></li>
-                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
-                    <li><a href="/avaliacao web/admin/usuarios.php" class="active">👥 Usuários</a></li>
-                    <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
-                    <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
+                    <li><a href="/avaliacao web/admin/dashboard.php"><?= icone('dashboard', 16) ?> Dashboard</a></li>
+                    <li><a href="/avaliacao web/admin/questoes.php"><?= icone('questoes', 16) ?> Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php"><?= icone('alunos', 16) ?> Alunos</a></li>
+                    <li><a href="/avaliacao web/admin/usuarios.php" class="active"><?= icone('usuarios', 16) ?> Usuários</a></li>
+                    <li><a href="/avaliacao web/admin/avaliacoes.php"><?= icone('avaliacoes', 16) ?> Avaliações</a></li>
+                    <li><a href="/avaliacao web/admin/eventos.php"><?= icone('eventos', 16) ?> Eventos suspeitos</a></li>
                 </ul>
                 <hr style="margin: 1rem 0; border-color: var(--border-color);">
-                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline">👁️ Ver como Aluno</a></li>
+                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline"><?= icone('olho', 15) ?> Ver como aluno</a></li>
             </nav>
         </aside>
 
@@ -165,7 +166,7 @@ if ($acao === 'listar') {
                 <div class="admin-section">
                     <div class="section-header">
                         <h3>Usuários Cadastrados (<?= count($usuarios) ?>)</h3>
-                        <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-primary">➕ Novo Usuário</a>
+                        <a href="/avaliacao web/admin/usuarios.php?acao=novo" class="btn btn-primary"><?= icone('mais', 15) ?> Novo usuário</a>
                     </div>
 
                     <div class="table-responsive">
@@ -201,13 +202,13 @@ if ($acao === 'listar') {
                                         </td>
                                         <td><?= formatarData($u['created_at'], 'd/m/Y H:i') ?></td>
                                         <td>
-                                            <a href="/avaliacao web/admin/usuarios.php?acao=ver&id=<?= $u['id'] ?>" class="btn btn-sm btn-outline" title="Ver">👁️</a>
-                                            <a href="/avaliacao web/admin/usuarios.php?acao=editar&id=<?= $u['id'] ?>" class="btn btn-sm btn-secondary" title="Editar">✏️</a>
+                                            <a href="/avaliacao web/admin/usuarios.php?acao=ver&id=<?= $u['id'] ?>" class="btn btn-sm btn-outline" title="Ver"><?= icone('olho', 15) ?></a>
+                                            <a href="/avaliacao web/admin/usuarios.php?acao=editar&id=<?= $u['id'] ?>" class="btn btn-sm btn-secondary" title="Editar"><?= icone('editar', 15) ?></a>
                                             <?php if ($u['id'] !== $_SESSION['usuario_id']): ?>
                                                 <a href="/avaliacao web/admin/usuarios.php?acao=excluir&id=<?= $u['id'] ?>&confirm=1"
                                                    class="btn btn-sm btn-danger"
                                                    onclick="return confirm('Tem certeza que deseja excluir este usuário?')"
-                                                   title="Excluir">🗑️</a>
+                                                   title="Excluir"><?= icone('excluir', 15) ?></a>
                                             <?php endif; ?>
                                         </td>
                                     </tr>

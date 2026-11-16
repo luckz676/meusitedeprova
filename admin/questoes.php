@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/icones.php';
 
 requerAdmin();
 
@@ -144,15 +145,15 @@ if ($acao === 'listar') {
             <nav class="admin-nav">
                 <h3>Menu</h3>
                 <ul>
-                    <li><a href="/avaliacao web/admin/dashboard.php">📊 Dashboard</a></li>
-                    <li><a href="/avaliacao web/admin/questoes.php" class="active">📝 Questões</a></li>
-                    <li><a href="/avaliacao web/admin/alunos.php">🎓 Alunos</a></li>
-                    <li><a href="/avaliacao web/admin/usuarios.php">👥 Usuários</a></li>
-                    <li><a href="/avaliacao web/admin/avaliacoes.php">📋 Avaliações</a></li>
-                    <li><a href="/avaliacao web/admin/eventos.php">🚨 Eventos Suspeitos</a></li>
+                    <li><a href="/avaliacao web/admin/dashboard.php"><?= icone('dashboard', 16) ?> Dashboard</a></li>
+                    <li><a href="/avaliacao web/admin/questoes.php" class="active"><?= icone('questoes', 16) ?> Questões</a></li>
+                    <li><a href="/avaliacao web/admin/alunos.php"><?= icone('alunos', 16) ?> Alunos</a></li>
+                    <li><a href="/avaliacao web/admin/usuarios.php"><?= icone('usuarios', 16) ?> Usuários</a></li>
+                    <li><a href="/avaliacao web/admin/avaliacoes.php"><?= icone('avaliacoes', 16) ?> Avaliações</a></li>
+                    <li><a href="/avaliacao web/admin/eventos.php"><?= icone('eventos', 16) ?> Eventos suspeitos</a></li>
                 </ul>
                 <hr style="margin: 1rem 0; border-color: var(--border-color);">
-                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline">👁️ Ver como Aluno</a></li>
+                <li><a href="/avaliacao web/dashboard.php" class="btn btn-outline"><?= icone('olho', 15) ?> Ver como aluno</a></li>
             </nav>
         </aside>
 
@@ -170,7 +171,7 @@ if ($acao === 'listar') {
                 <div class="admin-section">
                     <div class="section-header">
                         <h3>Questões Cadastradas (<?= count($questoes) ?>)</h3>
-                        <a href="/avaliacao web/admin/questoes.php?acao=novo" class="btn btn-primary">➕ Nova Questão</a>
+                        <a href="/avaliacao web/admin/questoes.php?acao=novo" class="btn btn-primary"><?= icone('mais', 15) ?> Nova questão</a>
                     </div>
 
                     <div class="table-responsive">
@@ -213,12 +214,12 @@ if ($acao === 'listar') {
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="/avaliacao web/admin/questoes.php?acao=ver&id=<?= $q['id'] ?>" class="btn btn-sm btn-outline" title="Ver">👁️</a>
-                                            <a href="/avaliacao web/admin/questoes.php?acao=editar&id=<?= $q['id'] ?>" class="btn btn-sm btn-secondary" title="Editar">✏️</a>
+                                            <a href="/avaliacao web/admin/questoes.php?acao=ver&id=<?= $q['id'] ?>" class="btn btn-sm btn-outline" title="Ver"><?= icone('olho', 15) ?></a>
+                                            <a href="/avaliacao web/admin/questoes.php?acao=editar&id=<?= $q['id'] ?>" class="btn btn-sm btn-secondary" title="Editar"><?= icone('editar', 15) ?></a>
                                             <a href="/avaliacao web/admin/questoes.php?acao=excluir&id=<?= $q['id'] ?>&confirm=1"
                                                class="btn btn-sm btn-danger"
                                                onclick="return confirm('Tem certeza que deseja excluir esta questão?')"
-                                               title="Excluir">🗑️</a>
+                                               title="Excluir"><?= icone('excluir', 15) ?></a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -290,12 +291,12 @@ if ($acao === 'listar') {
                                         <input type="checkbox" name="alternativas[<?= $i ?>][correta]" value="1" <?= !empty($alt['correta']) ? 'checked' : '' ?>>
                                         Correta
                                     </label>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="removerAlternativa(this)" title="Remover">🗑️</button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removerAlternativa(this)" title="Remover"><?= icone('excluir', 15) ?></button>
                                 </div>
                             <?php endforeach; ?>
                         </div>
 
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarAlternativa()">➕ Adicionar Alternativa</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarAlternativa()"><?= icone('mais', 15) ?> Adicionar alternativa</button>
                     </fieldset>
 
                     <div class="form-actions">
@@ -394,7 +395,7 @@ if ($acao === 'listar') {
                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; white-space: nowrap;">
                     <input type="checkbox" name="alternativas[${altIndex}][correta]" value="1"> Correta
                 </label>
-                <button type="button" class="btn btn-sm btn-danger" onclick="removerAlternativa(this)" title="Remover">🗑️</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removerAlternativa(this)" title="Remover"><?= icone('excluir', 15) ?></button>
             `;
             container.appendChild(div);
             altIndex++;

@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/icones.php';
 
 if (!function_exists('renderFeedbackWidget')) {
 
@@ -22,7 +23,7 @@ if (!function_exists('renderFeedbackWidget')) {
         ?>
         <section class="feedback-widget" aria-labelledby="feedback-titulo">
             <div class="feedback-widget__header">
-                <h3 id="feedback-titulo">⭐ Avalie o site</h3>
+                <h3 id="feedback-titulo">Avalie o site</h3>
                 <p>Dê uma nota de 1 a 5 estrelas e conte o que você achou do sistema.</p>
             </div>
 
@@ -37,7 +38,9 @@ if (!function_exists('renderFeedbackWidget')) {
                                 data-valor="<?= $nota ?>"
                                 role="radio"
                                 aria-checked="false"
-                                aria-label="<?= $nota ?> estrela<?= $nota > 1 ? 's' : '' ?>">★</button>
+                                aria-label="<?= $nota ?> estrela<?= $nota > 1 ? 's' : '' ?>">
+                            <?= icone('estrela', 24, 'star__icone') ?>
+                        </button>
                     <?php endfor; ?>
                 </div>
                 <input type="hidden" name="estrelas" id="feedback-estrelas" value="0">

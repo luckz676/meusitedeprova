@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/icones.php';
 
 requerAluno();
 
@@ -124,7 +125,7 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
 
         <?php if ($avaliacao['status'] === 'fraude'): ?>
             <div class="alert alert-error">
-                🚨 <strong>Prova encerrada por fraude.</strong>
+                <?= icone('alerta', 16) ?> <strong>Prova encerrada por fraude.</strong>
                 O sistema anti-cola registrou violações além do limite permitido e finalizou a avaliação
                 automaticamente. O professor pode ver o relatório completo de eventos.
             </div>
@@ -132,15 +133,15 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
 
         <div class="nota-principal">
             <div class="nota-circulo <?= ($avaliacao['nota'] ?? 0) >= 6 ? 'aprovado' : 'reprovado' ?>" style="--p: <?= (($avaliacao['nota'] ?? 0) / 10) * 100 ?>">
-                <span class="nota-valor"><?= number_format($avaliacao['nota'] ?? 0, 1) ?></span>
+                <span class="nota-valor"><?= number_format($avaliacao['nota'] ?? 0, 1, ',', '') ?></span>
                 <span class="nota-label">/ 10</span>
             </div>
             <div class="nota-status">
                 <?php if ($avaliacao['status'] === 'fraude'): ?>
-                    <h3>🚨 Encerrada por fraude</h3>
+                    <h3>Encerrada por fraude</h3>
                     <p>A nota exibida é apenas informativa: a prova foi finalizada pelo sistema anti-cola.</p>
                 <?php else: ?>
-                    <h3><?= ($avaliacao['nota'] ?? 0) >= 6 ? '🎉 Aprovado!' : '📚 Reprovado' ?></h3>
+                    <h3><?= ($avaliacao['nota'] ?? 0) >= 6 ? 'Aprovado' : 'Reprovado' ?></h3>
                     <p>Nota mínima para aprovação: 6,0</p>
                 <?php endif; ?>
             </div>
@@ -199,7 +200,7 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
                     $ehDissertativa = ($d['tipo'] === 'dissertativa');
                     $classeItem = $pendente ? 'pendente' : ($d['correta'] ? 'acertou' : 'errou');
                     $classeBadge = $pendente ? 'warning' : ($d['correta'] ? 'success' : 'danger');
-                    $textoBadge = $pendente ? '⏳ Aguardando correção' : ($d['correta'] ? '✓ Correta' : '✗ Incorreta');
+                    $textoBadge = $pendente ? 'Aguardando correção' : ($d['correta'] ? 'Correta' : 'Incorreta');
                     ?>
                     <div class="accordion-item <?= $classeItem ?>">
                         <button class="accordion-header" type="button" aria-expanded="false">
@@ -208,7 +209,7 @@ $aproveitamento = $totalObjetivas > 0 ? round((($avaliacao['acertos'] ?? 0) / $t
                             <span class="questao-resultado-badge <?= $classeBadge ?>">
                                 <?= $textoBadge ?>
                             </span>
-                            <span class="accordion-icon">▼</span>
+                            <span class="accordion-icon"><?= icone('seta', 16) ?></span>
                         </button>
                         <div class="accordion-content">
                             <div class="questao-detalhe">

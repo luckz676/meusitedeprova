@@ -6,6 +6,7 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/feedback_widget.php';
+require_once __DIR__ . '/includes/icones.php';
 
 requerAluno();
 
@@ -46,24 +47,47 @@ if ($avaliacaoAtiva) {
             <h1><?= e(APP_NAME) ?></h1>
             <div class="user-info">
                 <span class="user-name"><?= e($usuarioNome) ?></span>
-                <a href="/avaliacao web/logout.php" class="btn btn-secondary btn-sm">Sair</a>
+                <a href="/avaliacao web/logout.php" class="btn btn-secondary btn-sm"><?= icone('sair', 15) ?> Sair</a>
             </div>
         </div>
     </header>
 
     <main class="container main-content">
         <div class="dashboard-header">
-            <h2>Bem-vindo, <?= e($usuarioNome) ?>!</h2>
-            <p class="subtitle">Sistema de Avaliação Acadêmica - Programação Web</p>
+            <div>
+                <h2>Olá, <?= e($usuarioNome) ?>.</h2>
+                <p class="subtitle">Avaliação de Programação Web</p>
+            </div>
+            <p class="dashboard-header__meta">
+                <?= (int)$composicao['total'] ?> questões · <?= e($tempoLimiteTexto) ?> de prova
+            </p>
         </div>
 
         <?php if ($avaliacaoAtiva && $avaliacaoAtiva['status'] === 'em_andamento'): ?>
             <div class="card status-card in-progress">
-                <div class="status-icon timer" id="timer-display">⏱</div>
-                <h3>Avaliação em Andamento</h3>
-                <p>Tempo restante: <strong id="tempo-restante"><?= gmdate('H:i:s', $tempoRestante) ?></strong></p>
-                <a href="/avaliacao web/avaliacao.php" class="btn btn-primary btn-lg">Continuar Avaliação</a>
-                <p class="warning">⚠️ Não feche esta aba! O tempo continua contando.</p>
+                <div class="status-card__topo">
+                    <span class="status-card__selo">Em andamento</span>
+                    <span class="mono text-muted" style="font-size: 0.7rem;">
+                        iniciada em <?= formatarData($avaliacaoAtiva['inicio'], 'd/m \à\s H:i') ?>
+                    </span>
+                </div>
+
+                <h3>Você tem uma prova aberta.</h3>
+                <p>O relógio continua correndo enquanto esta tela não for retomada.</p>
+
+                <dl class="prova-dados">
+                    <div>
+                        <dt>Tempo restante</dt>
+                        <dd><span id="tempo-restante"><?= gmdate('H:i:s', $tempoRestante) ?></span></dd>
+                    </div>
+                    <div>
+                        <dt>Questões</dt>
+                        <dd><?= (int)$avaliacaoAtiva['total_questoes'] ?></dd>
+                    </div>
+                </dl>
+
+                <a href="/avaliacao web/avaliacao.php" class="btn btn-primary btn-lg">Continuar avaliação</a>
+                <p class="warning"><?= icone('alerta', 15) ?> Não feche esta aba: o tempo continua contando.</p>
             </div>
 
             <script>
@@ -87,59 +111,70 @@ if ($avaliacaoAtiva) {
 
         <?php else: ?>
             <div class="card status-card available">
-                <div class="status-icon">📝</div>
-                <h3>Avaliação Disponível</h3>
-                <p>Você ainda não iniciou uma avaliação. Clique abaixo para começar.</p>
-                <p class="info">
-                    A avaliação possui <strong><?= $composicao['total'] ?> questões</strong>
-                    (<?= $composicao['objetivas'] ?> objetivas e <?= $composicao['dissertativas'] ?> dissertativas),
-                    intercalando os dois tipos.
+                <div class="status-card__topo">
+                    <span class="status-card__selo">Disponível</span>
+                    <span class="mono text-muted" style="font-size: 0.7rem;">aguardando início</span>
+                </div>
+
+                <h3>Avaliação de Programação Web</h3>
+                <p>
+                    Você ainda não iniciou. Ao começar, a câmera é ligada e a prova entra em
+                    tela cheia até a entrega.
                 </p>
-                <p class="info">Tempo limite: <strong><?= e($tempoLimiteTexto) ?></strong></p>
+
+                <dl class="prova-dados">
+                    <div>
+                        <dt>Questões</dt>
+                        <dd><?= (int)$composicao['total'] ?> <small><?= (int)$composicao['objetivas'] ?> objetivas · <?= (int)$composicao['dissertativas'] ?> dissertativas</small></dd>
+                    </div>
+                    <div>
+                        <dt>Tempo</dt>
+                        <dd><?= e($tempoLimiteTexto) ?></dd>
+                    </div>
+                    <div>
+                        <dt>Modo</dt>
+                        <dd>Monitorado</dd>
+                    </div>
+                </dl>
 
                 <form method="POST" action="/avaliacao web/iniciar_avaliacao.php">
                     <input type="hidden" name="csrf_token" value="<?= e(gerarTokenCSRF()) ?>">
-                    <button type="submit" class="btn btn-primary btn-lg" id="btn-iniciar">Iniciar Avaliação</button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="btn-iniciar">Iniciar avaliação</button>
                 </form>
 
                 <div class="aviso-importante">
-                    <h4>⚠️ Regras Importantes:</h4>
+                    <h4><?= icone('escudo', 15) ?> Regras da prova</h4>
                     <ul>
-                        <li>O tempo começa a contar imediatamente ao iniciar</li>
-                        <li>Não é permitido mudar de aba/janela nem abrir novas abas durante a prova</li>
-                        <li>Copiar e colar são bloqueados e registrados como tentativa de fraude</li>
-                        <li>Eventos suspeitos são registrados automaticamente</li>
-                        <li>A avaliação é finalizada automaticamente ao acabar o tempo</li>
-                        <li>As questões dissertativas são corrigidas manualmente pelo professor</li>
+                        <li>O tempo começa a contar no instante em que a prova é iniciada</li>
+                        <li>Não é permitido mudar de aba ou janela, nem abrir novas abas</li>
+                        <li>Copiar e colar ficam bloqueados e vão para o relatório do professor</li>
+                        <li>Sair da tela cheia, perder o foco ou desviar o olhar contam ocorrência</li>
+                        <li>A prova é entregue automaticamente quando o tempo acaba</li>
+                        <li>As questões dissertativas são corrigidas à mão pelo professor</li>
                     </ul>
                 </div>
             </div>
+        <?php endif; ?>
 
-            <?php if ($ultimaAvaliacao): ?>
-                <?php $ultimaFoiFraude = $ultimaAvaliacao['status'] === 'fraude'; ?>
-                <div class="card status-card completed<?= $ultimaFoiFraude ? ' fraude' : '' ?>">
-                    <div class="status-icon"><?= $ultimaFoiFraude ? '🚨' : '✓' ?></div>
-                    <h3>Última Avaliação Concluída</h3>
+        <?php if ($ultimaAvaliacao): ?>
+            <?php $ultimaFoiFraude = $ultimaAvaliacao['status'] === 'fraude'; ?>
+            <div class="ultima-prova">
+                <span class="badge <?= $ultimaFoiFraude ? 'badge-danger' : 'badge-success' ?>">
+                    <?= $ultimaFoiFraude ? 'Encerrada' : 'Entregue' ?>
+                </span>
+                <span class="ultima-prova__nota"><?= number_format((float)($ultimaAvaliacao['nota'] ?? 0), 1, ',', '') ?></span>
+                <span class="text-muted" style="font-size: 0.82rem;">
+                    última prova · <?= formatarData($ultimaAvaliacao['inicio'], 'd/m/Y \à\s H:i') ?>
                     <?php if ($ultimaFoiFraude): ?>
-                        <p class="fraude">
-                            <?php if (MODO_LEVE): ?>
-                                Esta prova foi <strong>encerrada automaticamente</strong> pelo sistema de acompanhamento.
-                            <?php else: ?>
-                                🚨 Esta prova foi <strong>encerrada por fraude</strong> pelo sistema anti-cola.
-                            <?php endif; ?>
-                        </p>
+                        · encerrada pelo acompanhamento
                     <?php endif; ?>
-                    <p>
-                        Nota: <strong><?= number_format((float)($ultimaAvaliacao['nota'] ?? 0), 1) ?></strong>
-                        &middot; <?= formatarData($ultimaAvaliacao['inicio'], 'd/m/Y \à\s H:i') ?>
-                    </p>
-                    <a href="/avaliacao web/resultado.php?id=<?= (int)$ultimaAvaliacao['id'] ?>" class="btn btn-secondary">Ver Resultado</a>
-                </div>
-            <?php endif; ?>
+                </span>
+                <a href="/avaliacao web/resultado.php?id=<?= (int)$ultimaAvaliacao['id'] ?>" class="btn btn-secondary btn-sm">Ver resultado</a>
+            </div>
         <?php endif; ?>
 
         <div class="card info-card">
-            <h3>📚 Conteúdos da Avaliação</h3>
+            <h3>Conteúdos da avaliação</h3>
             <div class="topics-grid">
                 <span class="topic-tag">PHP</span>
                 <span class="topic-tag">Variáveis e tipos de dados</span>

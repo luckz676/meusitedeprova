@@ -239,7 +239,7 @@
         statusEl.setAttribute('role', 'status');
         statusEl.setAttribute('aria-live', 'polite');
         statusEl.innerHTML = `
-            <span class='anti-cheat-status__titulo'>🛡️ Anti-cola ativo</span>
+            <span class='anti-cheat-status__titulo'>Anti-cola ativo</span>
             <span class='anti-cheat-status__linha' id='anti-cheat-status-faltas'></span>
             <span class='anti-cheat-status__linha' id='anti-cheat-status-tela'></span>
             <button type='button' class='btn btn-primary anti-cheat-status__botao' id='anti-cheat-status-btn' hidden>Voltar à tela cheia</button>
@@ -267,7 +267,7 @@
         statusFaltasEl.textContent = limiteFaltas > 0
             ? `Faltas graves: ${faltas} de ${limiteFaltas}`
             : `Faltas graves: ${faltas}`;
-        statusTelaCheiaEl.textContent = emTelaCheia ? '🖥️ Tela cheia: ativa' : '⚠️ Tela cheia: saiu!';
+        statusTelaCheiaEl.textContent = emTelaCheia ? 'Tela cheia: ativa' : 'Tela cheia: saiu';
         statusBotaoEl.hidden = emTelaCheia;
 
         statusEl.classList.toggle('anti-cheat-status--alerta', !emTelaCheia || pertoDoLimite);

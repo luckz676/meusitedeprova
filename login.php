@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/icones.php';
 
 if (estaLogado()) {
     if (ehAdmin()) {
@@ -54,10 +55,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-page">
     <div class="login-container">
+        <section class="login-brief">
+            <p class="login-brief__marca"><?= e(APP_NAME) ?></p>
+
+            <div>
+                <h2>A prova acontece <em>aqui</em> — com câmera e tela cheia ligadas.</h2>
+                <p style="margin-top: 1rem;">
+                    Entre com os dados entregues pelo professor. O tempo começa assim que a
+                    prova for iniciada e cada saída da tela fica registrada no relatório.
+                </p>
+            </div>
+
+            <ul class="login-brief__regras">
+                <li><?= icone('camera', 16) ?> Câmera ligada durante toda a prova</li>
+                <li><?= icone('escudo', 16) ?> Tela cheia obrigatória, sem trocar de aba</li>
+                <li><?= icone('documento', 16) ?> Cada resposta é salva na hora</li>
+            </ul>
+        </section>
+
         <div class="login-card">
             <div class="login-header">
-                <h1><?= e(APP_NAME) ?></h1>
-                <p class="subtitle">Área do Aluno</p>
+                <h1>Entrar na prova</h1>
+                <p class="subtitle">Use o e-mail ou o login que o professor cadastrou.</p>
             </div>
 
             <?php if ($erro): ?>
@@ -81,18 +100,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <div class="login-footer">
-                <p><strong>Credenciais de teste:</strong></p>
-                <p>Aluno: joao@aluno.com ou "joao" / aluno123</p>
-                <p>Admin: admin@sistema.com ou "admin" / admin123</p>
+                <p><strong>Contas de demonstração</strong></p>
+                <p>aluno: joao@aluno.com / aluno123</p>
+                <p>admin: admin@sistema.com / admin123</p>
             </div>
-        </div>
 
-        <?php if (!MODO_LEVE): ?>
-            <div class="gif-banner login-gif">
-                <img src="/avaliacao web/assets/gifs/spinning-oguri.gif" alt="Oguri girando" class="gif-banner__img login-gif__img">
-                <p class="gif-banner__texto">espero que esteja bom</p>
-            </div>
-        <?php endif; ?>
+            <?php if (!MODO_LEVE): ?>
+                <div class="gif-banner login-gif">
+                    <img src="/avaliacao web/assets/gifs/spinning-oguri.gif" alt="Oguri girando" class="gif-banner__img login-gif__img">
+                    <p class="gif-banner__texto">espero que esteja bom</p>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script>
