@@ -176,6 +176,22 @@
 /* Formulários */
 .admin-form { padding: 1.25rem; }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.9rem; }
+.admin-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface-2);
+    font-size: 0.85rem;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+    cursor: pointer;
+}
+.admin-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--seal); }
 .form-actions {
     display: flex;
     justify-content: flex-end;

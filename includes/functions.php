@@ -504,19 +504,23 @@ function listarUsuarios(): array
  * Verifica se já existe alguém com este e-mail (ou este login)
  * @param string $email
  * @param string|null $usuario
+ * @param int $ignorarId Usuário que está sendo editado (não conta como duplicado)
  * @return bool
  */
-function usuarioJaCadastrado(string $email, ?string $usuario = null): bool
+function usuarioJaCadastrado(string $email, ?string $usuario = null, int $ignorarId = 0): bool
 {
     try {
         $pdo = getDbConnection();
-        $sql = "SELECT COUNT(*) FROM usuarios WHERE email = ?";
+        $sql = "SELECT COUNT(*) FROM usuarios WHERE (email = ?";
         $params = [$email];
 
         if ($usuario !== null && $usuario !== '') {
             $sql .= " OR usuario = ?";
             $params[] = $usuario;
         }
+
+        $sql .= ') AND id <> ?';
+        $params[] = $ignorarId;
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
