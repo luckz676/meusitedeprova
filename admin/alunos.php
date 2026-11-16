@@ -206,16 +206,16 @@ $form = [
     'usuario' => '',
     'ativo' => 1,
 ];
-if ($alunoEditar) {
-    $form['nome'] = $alunoEditar['nome'];
-    $form['email'] = $alunoEditar['email'];
-    $form['usuario'] = $alunoEditar['usuario'] ?? '';
-    $form['ativo'] = (int)$alunoEditar['ativo'];
-} elseif (($_POST['form_acao'] ?? '') === 'editar') {
+if (($_POST['form_acao'] ?? '') === 'editar') {
     $form['nome'] = $_POST['nome'] ?? '';
     $form['email'] = $_POST['email'] ?? '';
     $form['usuario'] = $_POST['usuario'] ?? '';
     $form['ativo'] = isset($_POST['ativo']) ? 1 : 0;
+} elseif ($alunoEditar) {
+    $form['nome'] = $alunoEditar['nome'];
+    $form['email'] = $alunoEditar['email'];
+    $form['usuario'] = $alunoEditar['usuario'] ?? '';
+    $form['ativo'] = (int)$alunoEditar['ativo'];
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['nome'] = $_POST['nome'] ?? '';
     $form['email'] = $_POST['email'] ?? '';
