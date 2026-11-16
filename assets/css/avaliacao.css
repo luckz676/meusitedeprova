@@ -258,6 +258,8 @@
     color: var(--ink);
     background:
         repeating-linear-gradient(transparent, transparent calc(1.6em - 1px), var(--rule) calc(1.6em - 1px), var(--rule) 1.6em);
+    background-position: 0 0.78em;
+    background-clip: content-box;
     background-attachment: local;
     border: 1px solid var(--rule-strong);
     border-radius: var(--border-radius);

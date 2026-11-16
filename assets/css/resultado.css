@@ -315,7 +315,7 @@
     max-width: 68ch;
 }
 .conclusao-actions { display: flex; justify-content: flex-start; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.35rem; }
-.conclusao-card .gif-banner { align-items: flex-start; }
+.conclusao-card .gif-banner { align-items: center; }
 
 /* Ações */
 .resultado-actions {
