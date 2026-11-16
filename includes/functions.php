@@ -94,6 +94,51 @@ function contarQuestoesProva(): array
 }
 
 /**
+ * Sorteia questões dando preferência às que foram usadas menos vezes em provas.
+ *
+ * O sorteio era totalmente aleatório: com 5 objetivas entre 20+ cadastradas,
+ * a questão que o professor acabou de criar podia ficar fora de várias provas
+ * seguidas, parecendo que o cadastro não funcionava. Agora entra primeiro quem
+ * tem menos usos e, entre elas, a mais nova (id maior) vem primeiro — por isso
+ * a questão recém-cadastrada entra na prova seguinte e o rodízio continua
+ * valendo para o resto do banco.
+ *
+ * @param string[] $tipos Tipos aceitos (ex: ['multipla_escolha', 'verdadeiro_falso'])
+ * @param int $quantidade Quantas questões sortear
+ * @return int[] IDs das questões sorteadas
+ */
+function sortearQuestoes(array $tipos, int $quantidade): array
+{
+    if ($quantidade <= 0 || empty($tipos)) {
+        return [];
+    }
+
+    try {
+        $pdo = getDbConnection();
+        $marcadores = implode(', ', array_fill(0, count($tipos), '?'));
+
+        $stmt = $pdo->prepare(
+            "SELECT q.id
+             FROM questoes q
+             LEFT JOIN (
+                 SELECT questao_id, COUNT(*) AS usos
+                 FROM avaliacao_questoes
+                 GROUP BY questao_id
+             ) u ON u.questao_id = q.id
+             WHERE q.ativa = 1 AND q.tipo IN ($marcadores)
+             ORDER BY COALESCE(u.usos, 0) ASC, q.id DESC
+             LIMIT " . (int)$quantidade
+        );
+        $stmt->execute(array_values($tipos));
+
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Exception $e) {
+        error_log("Erro ao sortear questões da prova: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
  * Monta o conjunto de questões de uma nova prova, intercalando
  * questões objetivas (múltipla escolha / verdadeiro-falso) e dissertativas.
  * @return array Lista de questões com suas alternativas
@@ -101,20 +146,10 @@ function contarQuestoesProva(): array
 function montarQuestoesProva(): array
 {
     try {
-        $pdo = getDbConnection();
         $composicao = contarQuestoesProva();
 
-        $objetivas = $pdo->query(
-            "SELECT id FROM questoes
-             WHERE ativa = 1 AND tipo IN ('multipla_escolha', 'verdadeiro_falso')
-             ORDER BY RAND() LIMIT " . (int)$composicao['objetivas']
-        )->fetchAll(PDO::FETCH_COLUMN);
-
-        $dissertativas = $pdo->query(
-            "SELECT id FROM questoes
-             WHERE ativa = 1 AND tipo = 'dissertativa'
-             ORDER BY RAND() LIMIT " . (int)$composicao['dissertativas']
-        )->fetchAll(PDO::FETCH_COLUMN);
+        $objetivas = sortearQuestoes(['multipla_escolha', 'verdadeiro_falso'], $composicao['objetivas']);
+        $dissertativas = sortearQuestoes(['dissertativa'], $composicao['dissertativas']);
 
         // Intercala: objetiva, dissertativa, objetiva, dissertativa...
         $sequencia = [];
